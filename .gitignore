@@ -32,3 +32,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Any course pdf files that might make it in here.
+*.pdf

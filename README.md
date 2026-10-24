@@ -1,4 +1,1 @@
-`David`
-
-Test\
-Demonstrating restrictions.
+Initial README.MD, no details yet.
