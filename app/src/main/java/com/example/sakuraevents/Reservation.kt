@@ -25,12 +25,28 @@ class Reservation (val campsite: Campsite, val entrant: Entrant, val guest_count
      *
      * This method requires no parameters as it directly references the properties of the parent class.
      */
+
+    /**
+     * The init block here handles adding this reservation to its Campsite and Entrant.
+     */
+    init {
+        /*
+        Something like:
+        Entrant.addReservation(self)
+        Campsite.addReservation(self
+         */
+    }
+
     fun cancelReservation(): {
         /*
         call campsite method to remove this from the campsite list.
         call entrant method to remove this from the entrant list.
         then handle cleaning self up from database.
         kotlin handles its own memory management, it should clean this up once nothing else references it.
+
+        kind like:
+        Entrant.removeReservation(self)
+        Campsite.removeReservation(self
          */
     }
 
