@@ -4,10 +4,9 @@ package com.example.sakuraevents
  * Represents a reservation for a campsite at a specific set of dates.
  * This occurs when a user wins a lottery and selects from the available dates for a given campsite.
  *
- * A reservation has a name, current mana, and spell power stat. The
- * wizard needs sufficient mana to cast spells, and spell power
- * is used to calculate how much damage is dealt when a valid
- * spell is cast.
+ * A reservation has a campsite, reserving entrant, guest count, beginning, and end dates.
+ * The campsite and entrant references allow for adding/removing self from its campsite and entrant.
+ * guest count is used to confirm that the reservation doesn't overflow the
  *
  * @property campsite a reference to the Campsite for which this reservation is associated.
  * @property entrant a reference to the Entrant who established this reservation, they are included in the guest_count.
@@ -16,15 +15,13 @@ package com.example.sakuraevents
  * @property end_date the date on which the reservation ends.
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
-class Reservation (val campsite: Campsite, val entrant: Entrant, val guest_count: Int, val beginning_date: String, val end_date: String) {
+class Reservation (private val campsite: Campsite,
+                   private val entrant: Entrant,
+                   private val guest_count: Int,
+                   private val beginning_date: String,
+                   private val end_date: String) {
 
-    /**
-     * This method cancels the existing reservation and notifies the Entrant and Campsite objects
-     *      so that they can update their own references.
-     * Then, the reservation is removed from the database and cleaned up.
-     *
-     * This method requires no parameters as it directly references the properties of the parent class.
-     */
+
 
     /**
      * The init block here handles adding this reservation to its Campsite and Entrant.
@@ -37,6 +34,53 @@ class Reservation (val campsite: Campsite, val entrant: Entrant, val guest_count
          */
     }
 
+    /**
+     * This getter simply returns the reference to the campsite object.
+     *
+     * there are no parameters for this method. It acts directly on the class properties.
+     * @return a reference to the campsite object with the Campsite type.
+     */
+    fun getCampsite(): Campsite {
+        return campsite
+    }
+
+    /**
+     * This getter simply returns the reference to the entrant object.
+     *
+     * there are no parameters for this method. It acts directly on the class properties.
+     * @return a reference to the entrant object with the Entrant type.
+     */
+    fun getEntrant(): Entrant {
+        return entrant
+    }
+
+    /**
+     * This getter simply returns the guest count for this reservation.
+     *
+     * there are no parameters for this method. It acts directly on the class properties.
+     * @return the integer representation of the guest count.
+     */
+    fun getGuestCount(): Int {
+        return guest_count
+    }
+
+    /**
+     * This getter simply returns the date range of this reservation.
+     *
+     * there are no parameters for this method. It acts directly on the class properties.
+     * @return a string containing both the beginning and end dates of the reservation.
+     */
+    fun GetDates(): String {
+        return "$beginning_date to $end_date"
+    }
+
+    /**
+     * This method cancels the existing reservation and notifies the Entrant and Campsite objects
+     *      so that they can update their own references.
+     * Then, the reservation is removed from the database and cleaned up.
+     *
+     * This method requires no parameters as it directly references the properties of the parent class.
+     */
     fun cancelReservation(): {
         /*
         call campsite method to remove this from the campsite list.
