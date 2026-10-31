@@ -4,7 +4,7 @@ package com.example.sakuraevents
  * Represents a reservation for a campsite at a specific set of dates.
  * This occurs when a user wins a lottery and selects from the available dates for a given campsite.
  *
- * A wizard has a name, current mana, and spell power stat. The
+ * A reservation has a name, current mana, and spell power stat. The
  * wizard needs sufficient mana to cast spells, and spell power
  * is used to calculate how much damage is dealt when a valid
  * spell is cast.
@@ -16,7 +16,24 @@ package com.example.sakuraevents
  * @property end_date the date on which the reservation ends.
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
-class Reservation (campsite: Campsite, entrant: Entrant, guest_count: Int, beginning_date: String, end_date: String) {
+class Reservation (val campsite: Campsite, val entrant: Entrant, val guest_count: Int, val beginning_date: String, val end_date: String) {
+
+    /**
+     * This method cancels the existing reservation and notifies the Entrant and Campsite objects
+     *      so that they can update their own references.
+     * Then, the reservation is removed from the database and cleaned up.
+     *
+     * This method requires no parameters as it directly references the properties of the parent class.
+     */
+    fun cancelReservation(): {
+        /*
+        call campsite method to remove this from the campsite list.
+        call entrant method to remove this from the entrant list.
+        then handle cleaning self up from database.
+        kotlin handles its own memory management, it should clean this up once nothing else references it.
+         */
+    }
+
 }
 
 
