@@ -1,4 +1,4 @@
-package com.example.sakuraevents.ui.theme
+package com.example.sakuraevents
 
 /**
  * Represents a lottery that can generate a list of winners based on the capacity of the lottery.
