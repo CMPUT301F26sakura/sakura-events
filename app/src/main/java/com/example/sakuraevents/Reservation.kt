@@ -21,17 +21,12 @@ class Reservation (private val campsite: Campsite,
                    private val beginning_date: String,
                    private val end_date: String) {
 
-
-
     /**
      * The init block here handles adding this reservation to its Campsite and Entrant.
      */
     init {
-        /*
-        Something like:
-        Entrant.addReservation(self)
-        Campsite.addReservation(self
-         */
+        Entrant.addReservation(this)
+        Campsite.addReservation(this)
     }
 
     /**
@@ -80,32 +75,10 @@ class Reservation (private val campsite: Campsite,
      * Then, the reservation is removed from the database and cleaned up.
      *
      * This method requires no parameters as it directly references the properties of the parent class.
+     * @return Nothing
      */
     fun cancelReservation(): {
-        /*
-        call campsite method to remove this from the campsite list.
-        call entrant method to remove this from the entrant list.
-        then handle cleaning self up from database.
-        kotlin handles its own memory management, it should clean this up once nothing else references it.
-
-        kind like:
-        Entrant.removeReservation(self)
-        Campsite.removeReservation(self
-         */
+        Entrant.removeReservation(this)
+        Campsite.removeReservation(this)
     }
-
 }
-
-
-/*
-Reservation
-Responsibilities 	Collaborators
-Associate a winning entrant with a specific campsite and selected dates. 	Entrant
-Track and update the lifecycle status of a reservation (active, past, cancelled, declined, or rejected). 	Campsite
-Enforce entrant confirmation of campsite rules and policies prior to finalizing a reservation. 	Campsite Owner
-Provide reservation records and cancellation via notifications. 	Notification
-Facilitate direct messaging between a campsite owner and the reserving entrant. 	Admin
-Trigger notifications for reservation confirmations, cancellations, and owner rejections. 	Lottery
-Present valid, available dates to entrants who have won a campsite lottery.
-Prevent scheduling conflicts by tracking which dates are successfully converted into active reservations.
- */
