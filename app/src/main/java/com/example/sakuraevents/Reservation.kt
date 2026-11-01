@@ -68,9 +68,9 @@ class Reservation (private val campsite: Campsite,
      * This getter simply returns the date range of this reservation.
      *
      * there are no parameters for this method. It acts directly on the class properties.
-     * @return a string containing both the beginning and end dates of the reservation.
+     * @return a formatted string containing both the beginning and end dates of the reservation.
      */
-    fun GetDates(): String {
+    fun getDates(): String {
         return "$beginning_date to $end_date"
     }
 
