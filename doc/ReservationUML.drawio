@@ -1,0 +1,64 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="v5ClPRIpW19o1sYO1PIc">
+    <mxGraphModel dx="640" dy="473" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-6" edge="1" parent="1" source="Je5pFloN9XDEPZgQzh_4-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="261" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-8" connectable="0" parent="Je5pFloN9XDEPZgQzh_4-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="-0.7231" y="-3" as="geometry">
+            <mxPoint x="-18" y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-10" connectable="0" parent="Je5pFloN9XDEPZgQzh_4-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
+          <mxGeometry relative="1" x="0.715" y="2" as="geometry">
+            <mxPoint x="9" y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-7" edge="1" parent="1" source="Je5pFloN9XDEPZgQzh_4-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="200" />
+              <mxPoint x="460" y="200" />
+            </Array>
+            <mxPoint x="620" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-1" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Reservation" vertex="1">
+          <mxGeometry height="202" width="310" x="110" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-2" parent="Je5pFloN9XDEPZgQzh_4-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;div&gt;- campsite: Campsite,&lt;/div&gt;&lt;div&gt;- entrant: Entrant,&lt;/div&gt;&lt;div&gt;- guest_count: Int,&lt;/div&gt;&lt;div&gt;- beginning_date: String,&lt;/div&gt;&lt;div&gt;- end_date: String&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="84" width="310" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-3" parent="Je5pFloN9XDEPZgQzh_4-1" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="310" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-4" parent="Je5pFloN9XDEPZgQzh_4-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+&amp;nbsp;getCampsite(): Campsite&lt;div&gt;+&amp;nbsp;getEntrant(): Entrant&lt;/div&gt;&lt;div&gt;+ getGuestCount(): Int&lt;/div&gt;&lt;div&gt;+&amp;nbsp;getDates(): String&lt;/div&gt;&lt;div&gt;+&amp;nbsp;cancelReservation():&lt;/div&gt;" vertex="1">
+          <mxGeometry height="84" width="310" y="118" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-5" parent="1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="There is no &quot;createReservation():&quot; method to pair with the &quot;cancelReservation():&quot; method due to the behaviour of such a class being in the init block of the Reservation class. Due to init blocks being neither callable methods or referenceable properties they are omitted from the UML class diagram; however, because the behaviour encapsulated within the init block acts as the opposite pair to &quot;cancelReservation():&quot;, I felt it a good idea to document its existence here." vertex="1">
+          <mxGeometry height="138" width="310" x="110" y="362" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-9" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="0..*" vertex="1">
+          <mxGeometry x="430" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-11" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
+          <mxGeometry x="600" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Line to Entrant" vertex="1">
+          <mxGeometry height="30" width="90" x="470" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Line to Campsite" vertex="1">
+          <mxGeometry height="30" width="100" x="465" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="Je5pFloN9XDEPZgQzh_4-14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;" value="The Reservation class has a strong relationship with both Entrant and Campsite, if either (or both) is destroyed then this instance of Reservation is destroyed." vertex="1">
+          <mxGeometry height="70" width="290" x="425" y="280" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
