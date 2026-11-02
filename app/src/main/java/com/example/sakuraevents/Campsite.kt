@@ -80,7 +80,7 @@ class Campsite(
         }
     }
     fun removeReservation(reservation: Reservation) { // Remove a reservation object from campsite reserv. list
-        reservations.remove(reservation)
+        reservations.removeIf { it === reservation }
     }
     fun getAvgRating(): String { // This will return the average rating of the campsite as a string
         return average_rating.toString()
