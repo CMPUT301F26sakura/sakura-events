@@ -19,29 +19,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SakuraEventsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+               EntrantApp()
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SakuraEventsTheme {
-        Greeting("Android")
-    }
-}
