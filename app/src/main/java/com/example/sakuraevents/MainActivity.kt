@@ -19,10 +19,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SakuraEventsTheme {
-               EntrantApp()
+               entrantApp()
                 }
             }
         }
     }
-}
+
 
