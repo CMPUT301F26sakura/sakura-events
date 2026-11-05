@@ -22,9 +22,9 @@ enum class ReservationState {
  * @property end_date the date on which the reservation ends.
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
-class Reservation (private val campsite: Campsite = Campsite(),
+class Reservation (public val UID: String = "",
+                   private val campsite: Campsite = Campsite(),
                    private val entrant: Entrant,
-                   private val UID: String = "",
                    private val guest_count: Int,
                    private val beginning_date: String,
                    private val end_date: String,
@@ -34,8 +34,8 @@ class Reservation (private val campsite: Campsite = Campsite(),
      * The init block here handles adding this reservation to its Campsite and Entrant.
      */
     init {
-        Entrant.addReservation(this)
-        Campsite.addReservation(this)
+        entrant.addReservation(this)
+        campsite.addReservation(this)
     }
 
     /**
@@ -74,8 +74,11 @@ class Reservation (private val campsite: Campsite = Campsite(),
      * there are no parameters for this method. It acts directly on the class properties.
      * @return a formatted string containing both the beginning and end dates of the reservation.
      */
-    fun getDates(): String {
-        return "$beginning_date to $end_date"
+    fun getBegginingDate(): String {
+        return beginning_date
+    }
+    fun getEndDate(): String {
+        return end_date
     }
 
     /**
@@ -111,10 +114,9 @@ class Reservation (private val campsite: Campsite = Campsite(),
      * Then, the reservation is removed from the database and cleaned up.
      *
      * This method requires no parameters as it directly references the properties of the parent class.
-     * @return Nothing
      */
-    fun deleteReservation(): {
-        Entrant.removeReservation(this)
-        Campsite.removeReservation(this)
+    fun deleteReservation(): Unit {
+        entrant.removeReservation(this)
+        campsite.removeReservation(this)
     }
 }
