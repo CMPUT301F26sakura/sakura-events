@@ -14,30 +14,15 @@ class FirestoreDriverTest {
     @Before
     fun setUp() {
         evilFirestore = FirestoreDriver()
+        Thread.sleep(6_000)
     }
 
     @Test
     fun insertCampsite() {
-        val campsite: Campsite = Campsite(name = "Beep", location = "Sheep", description = "maximus", max_occupancy = 15, price = 1.15f)
-        val myTask = evilFirestore.addCampsite(campsite)
+        val campsite: Campsite = Campsite(name = "Blorp", location = "Sheep", description = "maximus", max_occupancy = 15, price = 1.15f)
+        evilFirestore.addCampsite(campsite)
         assertEquals("0", (evilFirestore.campsites["0"] as Campsite).UID)
-        //assert(evilFirestore.campsites.isEmpty())
+        assert(evilFirestore.campsites.isNotEmpty())
 
-
-        //val task = evilFirestore.db.collection("TEST").document("TSET").set(mapOf("Hello" to "World"))
-
-        //Tasks.await(task) // Wait for Firestore; throws if the write fails
-
-        /*evilFirestore.db
-            .collection("TEST")
-            .document("TSET")
-            .set(mapOf("Hello" to "World"))
-            .addOnSuccessListener {
-                println("Write succeeded")
-            }
-            .addOnFailureListener { error ->
-                error.printStackTrace() // Look for PERMISSION_DENIED, etc.
-            }
-        */
     }
 }

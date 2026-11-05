@@ -1,7 +1,6 @@
 package com.example.sakuraevents
 
-
-
+import kotlin.collections.mutableListOf
 
 
 /**
@@ -17,12 +16,13 @@ package com.example.sakuraevents
  * @property phoneNumber  the phone number of the entrant.
  */
 
-class Entrant (val UID: String = "",
-               private var name: String,
-               private var email: String,
-               private var phone_number: String,
-               private val _reservations: MutableList<Reservation>,
-               private val _notifications: MutableList<Notification>) {
+class Entrant (UID: String = "",
+   name: String,
+   email: String,
+   phone_number: String,
+   private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+   private val _notifications: MutableList<Notification> = mutableListOf<Notification>()
+): User(UID, name, email, phone_number) {
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
 
@@ -36,23 +36,5 @@ class Entrant (val UID: String = "",
     }
     fun clearReservations() {
         _reservations.forEach { it.deleteReservation() }
-    }
-    fun getName(): String{
-        return name
-    }
-    fun setName(new_name: String): Unit{
-        name = new_name
-    }
-    fun getEmail(): String{
-        return email
-    }
-    fun setEmail(new_email: String): Unit{
-        email = new_email
-    }
-    fun getPhoneNumber(): String{
-        return phone_number
-    }
-    fun setPhoneNumber(new_phone_number: String): Unit{
-        phone_number = new_phone_number
     }
 }
