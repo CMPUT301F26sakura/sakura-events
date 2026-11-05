@@ -1,19 +1,25 @@
 package com.example.sakuraevents
 
 class Campsite(
-    val uid: String = "",
+    val UID: String = "",
     private var name: String = "",
     private var location: String = "",
     private var description: String = "",
     private var max_occupancy: Int = 1,
     private var qr_code: String = "",
     private var price: Float = 0.0f,
-    private var tags: MutableList<String> = mutableListOf(),
-    private var booking_period_dates: MutableList<String> = mutableListOf(),
-    private var reservations: MutableList<Reservation> = mutableListOf(),
-    private var ratings: MutableList<Pair<Entrant, Float>> = mutableListOf<>(),
+    private var _tags: MutableList<String> = mutableListOf(),
+    private var _booking_period_dates: MutableList<String> = mutableListOf(),
+    private var _reservations: MutableList<Reservation> = mutableListOf(),
+    private var _ratings: MutableList<Pair<Entrant, Float>> = mutableListOf(),
     private var average_rating: Float = 0.0f
 ) {
+
+    val tags: List<String> get() = _tags
+    val booking_period_dates: List<String> get() = _booking_period_dates
+    val reservations: List<Reservation> get() = _reservations
+    val ratings: List<Pair<Entrant, Float>> get() = _ratings
+
     fun setName(name: String){ // Set the name of the campsite
         this.name = name // Keyword "this" refers to the specific object instance in the code
         // Basically "this" keyword points to the current instance of that class
@@ -56,31 +62,32 @@ class Campsite(
         return this.qr_code
     }
     fun addTag(tag: String) { // Add a tag to the campsite's tags if not already exists
-        if (!tags.contains(tag)) {
-            tags.add(tag)
+        if (!_tags.contains(tag)) {
+            _tags.add(tag)
         }
     }
-    fun getTags(): String { // This will return the campsite's tags as a comma-separated string
-        return tags.joinToString(", ")
-    }
+    //fun getTags(): String { // This will return the campsite's tags as a comma-separated string
+    //    return tags.joinToString(", ")
+    //}
     fun removeTag(tag: String) {
-        tags.remove(tag)
+        _tags.remove(tag)
     }
     fun addBookingPeriod(date: String) { // This adds available date to booking_period_dates if not already exists
-        if (!booking_period_dates.contains(date)) {
-            booking_period_dates.add(date)
+        if (!_booking_period_dates.contains(date)) {
+            _booking_period_dates.add(date)
         }
     }
     fun removeBookingPeriodDate(date: String) { // Removes a date from booking period dates
-        booking_period_dates.remove(date)
+        _booking_period_dates.remove(date)
     }
     fun addReservation(reservation: Reservation) { // Add a Reservation object to campsite reservation list
-        if (!reservations.contains(reservation)) {
-            reservations.add(reservation)
+        if (!_reservations.any { it === reservation }) {
+            _reservations.add(reservation)
+
         }
     }
     fun removeReservation(reservation: Reservation) { // Remove a reservation object from campsite reserv. list
-        reservations.removeIf { it === reservation }
+        _reservations.removeIf { it === reservation }
     }
     fun getAvgRating(): String { // This will return the average rating of the campsite as a string
         return average_rating.toString()
@@ -89,13 +96,13 @@ class Campsite(
         // PLEASE NOTE that this function code is just an idea and may be updated in the future!
         // This function will be responsible of adding a new (Entrant, Float) rating pair and update average_rating
         if (score in 1.0f..5.0f) {
-            ratings.add(Pair(entrant, score)) // This will pack entrant and their score into a single Pair
+            _ratings.add(Pair(entrant, score)) // This will pack entrant and their score into a single Pair
 
             var sum = 0.0f
-            for ((reviewer, ratingScore) in ratings) { // Split the pair into reviewer and ratingScore in ratings
+            for ((reviewer, ratingScore) in _ratings) { // Split the pair into reviewer and ratingScore in ratings
                 sum += ratingScore // Add the rating score to the sum
             }
-            average_rating = sum / ratings.size
+            average_rating = sum / _ratings.size
         }
     }
 }
