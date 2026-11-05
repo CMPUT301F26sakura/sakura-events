@@ -12,17 +12,38 @@ class Campsite(
     private var _booking_period_dates: MutableList<String> = mutableListOf(),
     private var _reservations: MutableList<Reservation> = mutableListOf(),
     private var _ratings: MutableList<Pair<Entrant, Float>> = mutableListOf(),
-    private var average_rating: Float = 0.0f
+    private var average_rating: Float = 0.0f,
+    private var _waiting_list: MutableList<Entrant> = mutableListOf(),
+    private var waitlist_capacity: Int = 0 // 0 here indicates there is no limit.
 ) {
 
     val tags: List<String> get() = _tags
     val booking_period_dates: List<String> get() = _booking_period_dates
     val reservations: List<Reservation> get() = _reservations
     val ratings: List<Pair<Entrant, Float>> get() = _ratings
+    val waiting_list: List<Entrant> get() = _waiting_list
 
     fun setName(name: String){ // Set the name of the campsite
         this.name = name // Keyword "this" refers to the specific object instance in the code
         // Basically "this" keyword points to the current instance of that class
+    }
+    fun getWaitlistCapacity(): Int {
+        return waitlist_capacity
+    }
+    fun setWaitlistCapacity(new_capacity: Int): Boolean {
+        if (new_capacity >= 0)
+            waitlist_capacity = new_capacity
+            return true
+        return false
+    }
+    fun addToWaitingList(entrant: Entrant): Boolean {
+        if ((waitlist_capacity == 0 || _waiting_list.count() < waitlist_capacity) && !_waiting_list.any { it === entrant })
+            _waiting_list.add(entrant)
+            return true
+        return false
+    }
+    fun removeFromWaitingList(entrant: Entrant) {
+        _waiting_list.removeIf { it === entrant }
     }
     fun getName(): String { // Returns campsite name
         return this.name

@@ -1,8 +1,12 @@
 package com.example.sakuraevents
 
+import kotlin.collections.mutableListOf
 
-
-
+enum class Role {
+    ENTRANT,
+    OWNER,
+    ADMIN,
+}
 
 /**
  * Represents an entrant in the Sakura Events app.
@@ -17,12 +21,14 @@ package com.example.sakuraevents
  * @property phoneNumber  the phone number of the entrant.
  */
 
-class Entrant (val UID: String = "",
-               private var name: String,
-               private var email: String,
-               private var phone_number: String,
-               private val _reservations: MutableList<Reservation>,
-               private val _notifications: MutableList<Notification>) {
+open class Entrant (val UID: String= "",
+                    private val role: Role,
+                    private var name: String,
+                    private var email: String,
+                    private var phone_number: String,
+                    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+                    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
+
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
 
@@ -37,22 +43,32 @@ class Entrant (val UID: String = "",
     fun clearReservations() {
         _reservations.forEach { it.deleteReservation() }
     }
-    fun getName(): String{
+
+    fun getRole(): String {
+        return role.toString()
+    }
+    fun getName(): String {
         return name
     }
-    fun setName(new_name: String): Unit{
-        name = new_name
-    }
-    fun getEmail(): String{
-        return email
-    }
-    fun setEmail(new_email: String): Unit{
-        email = new_email
-    }
-    fun getPhoneNumber(): String{
+    fun getPhoneNumber(): String {
         return phone_number
     }
-    fun setPhoneNumber(new_phone_number: String): Unit{
-        phone_number = new_phone_number
+    fun getEmail(): String {
+        return email
     }
+
+    fun setName(newName: String) {
+        name = newName
+    }
+    fun setEmail(newEmail: String) {
+        email = newEmail
+    }
+    fun setPhoneNumber(newPhoneNumber: String) {
+        phone_number = newPhoneNumber
+    }
+    fun addNotification(notification: Notification) {
+        if (_notifications.any { it === notification })
+            _notifications.add(notification)
+    }
+
 }
