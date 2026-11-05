@@ -16,13 +16,13 @@ import kotlin.collections.mutableListOf
  * @property phoneNumber  the phone number of the entrant.
  */
 
-class Entrant (UID: String = "",
-   name: String,
-   email: String,
-   phone_number: String,
-   private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
-   private val _notifications: MutableList<Notification> = mutableListOf<Notification>()
-): User(UID, name, email, phone_number) {
+open class Entrant (val UID: String= "",
+               private var name: String,
+               private var email: String,
+               private var phone_number: String,
+               private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+               private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
+
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
 
@@ -37,4 +37,25 @@ class Entrant (UID: String = "",
     fun clearReservations() {
         _reservations.forEach { it.deleteReservation() }
     }
+
+    fun getName(): String {
+        return name
+    }
+    fun getPhoneNumber(): String {
+        return phone_number
+    }
+    fun getEmail(): String {
+        return email
+    }
+
+    fun setName(newName: String) {
+        name = newName
+    }
+    fun setEmail(newEmail: String) {
+        email = newEmail
+    }
+    fun setPhoneNumber(newPhoneNumber: String) {
+        phone_number = newPhoneNumber
+    }
+
 }

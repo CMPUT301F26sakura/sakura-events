@@ -18,15 +18,17 @@ class FirestoreDriver {
     private val _campsites = mutableMapOf<String, Campsite>()
     private val _entrants = mutableMapOf<String, Entrant>()
     private val _owners = mutableMapOf<String, CampsiteOwner>()
-    //private val _admins = mutableMapOf<String, Admin>()
+    private val _admins = mutableMapOf<String, Admin>()
     //private val _notifications = mutableMapOf<String, Notification>()
+    //private val _lotteries = mutableMapOf<String, Lottery>()
 
     val reservations: Map<String, Reservation> get() = _reservations
     val campsites: Map<String, Campsite> get() = _campsites
     val entrants: Map<String, Entrant> get() = _entrants
     val owners: Map<String, CampsiteOwner> get() = _owners
-    //val admins: Map<String, Admin> get() = _admins
+    val admins: Map<String, Admin> get() = _admins
     //val notifications: Map<String, Notification> get() = _notifications
+    // val lotteries: Map<String, Lottery> get() = _lotteries
 
     val db = Firebase.firestore
     private val auth = FirebaseAuth.getInstance().signInAnonymously()
@@ -36,6 +38,7 @@ class FirestoreDriver {
     private val owners_ref = db.collection("owners")
     private val admins_ref = db.collection("admins")
     private val notifications_ref = db.collection("notifications")
+    private val lotteries_ref = db.collection("lotteries")
 
 
     /**
@@ -228,6 +231,28 @@ class FirestoreDriver {
     }
     fun deleteOwner(owner: CampsiteOwner): Task<Void> {
         // If we delete an owner should we also remove all of their campsites? Question for later.
+        owner.clearReservations()
         return owners_ref.document(owner.UID).delete()
+    }
+
+    fun addAdmin(admin: Admin): Task<Void> {
+        val UID: String
+        if (_admins.isNotEmpty()) {
+            UID = ((_admins.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
+        }
+        else {
+            UID = "0"
+        }
+        val firestore_format = mapOf<String, Any>(
+            "name" to admin.getName(),
+            "email" to admin.getEmail(),
+            "phone_number" to admin.getPhoneNumber(),
+            "notifications" to admin.notifications.map { it.UID },
+            "owned_campsites" to admin.owned_campsites.map { it.UID })
+        return admins_ref.document(admin.UID).set(firestore_format)
+    }
+    fun deleteAdmin(admin: Admin): Task<Void> {
+        admin.clearReservations()
+        return admins_ref.document(admin.UID).delete()
     }
 }
