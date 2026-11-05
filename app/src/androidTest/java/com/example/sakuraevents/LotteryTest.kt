@@ -33,6 +33,7 @@ class LotteryTest {
     private lateinit var lottery: Lottery
     private lateinit var camp1: Campsite
     private lateinit var camp2: Campsite
+
     /**
      * Initializes a [Lottery] and two [Campsite]s before each test.
      */
@@ -46,10 +47,13 @@ class LotteryTest {
         camp1 = Campsite(UID = "c1", name = "Moraine Creek", location = "Banff", description = "Alpine site", max_occupancy = 4, price = 45f)
         camp2 = Campsite(UID = "c2", name = "Maligne Canyon", location = "Jasper", description = "Canyon site", max_occupancy = 6, price = 50f)
     }
+
     /**
      * Verifies configuring multiple campsites, registration period dates, and winner capacity
      * (US 02.04.01, US 02.04.02, US 02.04.03, US 02.04.05).
      */
+    // The following @Test functions below were generated / modified using Google Gemini Model 3.1 Pro
+    // "Given my Lottery.kt, I want you to write some @Test functions for my Lottery.kt" 2026-Nov-5
     @Test
     fun testLotteryConfigurationAndMultiCampsiteListing() {
         lottery.addCampsite(camp1)
@@ -74,13 +78,15 @@ class LotteryTest {
         lottery.addCampsite(camp2)
         lottery.receiveCapacity(2)
 
-        val e1 = Entrant(UID = "e1", name = "One", email = "1@uab.ca", phone_number = "111")
-        val e2 = Entrant(UID = "e2", name = "Two", email = "2@uab.ca", phone_number = "222")
+        // Added role = Role.ENTRANT to satisfy the Entrant constructor
+        val e1 = Entrant(UID = "e1", role = Role.ENTRANT, name = "One", email = "1@uab.ca", phone_number = "111")
+        val e2 = Entrant(UID = "e2", role = Role.ENTRANT, name = "Two", email = "2@uab.ca", phone_number = "222")
 
         // e1 joins camp1, e2 joins both camp1 and camp2
-        camp1.joinWaitlist(e1)
-        camp1.joinWaitlist(e2)
-        camp2.joinWaitlist(e2)
+        // Changed joinWaitlist to addToWaitingList
+        camp1.addToWaitingList(e1)
+        camp1.addToWaitingList(e2)
+        camp2.addToWaitingList(e2)
 
         val winners = lottery.drawWinners()
 
@@ -99,13 +105,14 @@ class LotteryTest {
         lottery.addCampsite(camp1)
         lottery.receiveCapacity(1)
 
-        val e1 = Entrant(UID = "e1", name = "Entrant A", email = "a@uab.ca", phone_number = "111")
-        val e2 = Entrant(UID = "e2", name = "Entrant B", email = "b@uab.ca", phone_number = "222")
-        val e3 = Entrant(UID = "e3", name = "Entrant C", email = "c@uab.ca", phone_number = "333")
+        // Added role = Role.ENTRANT here as well
+        val e1 = Entrant(UID = "e1", role = Role.ENTRANT, name = "Entrant A", email = "a@uab.ca", phone_number = "111")
+        val e2 = Entrant(UID = "e2", role = Role.ENTRANT, name = "Entrant B", email = "b@uab.ca", phone_number = "222")
+        val e3 = Entrant(UID = "e3", role = Role.ENTRANT, name = "Entrant C", email = "c@uab.ca", phone_number = "333")
 
-        camp1.joinWaitlist(e1)
-        camp1.joinWaitlist(e2)
-        camp1.joinWaitlist(e3)
+        camp1.addToWaitingList(e1)
+        camp1.addToWaitingList(e2)
+        camp1.addToWaitingList(e3)
 
         val winners = lottery.drawWinners()
 
@@ -118,6 +125,8 @@ class LotteryTest {
         assertEquals(1, e3.notifications.size)
 
         val winnerEntrant = winners.first()
+
+        // Changed getTitle() to .title since Kotlin uses property access
         assertEquals("Lottery Winner!", winnerEntrant.notifications.first().getTitle())
     }
 }
