@@ -14,15 +14,20 @@ package com.example.sakuraevents
  * @property name the full name of the owner.
  * @property email the email address of the owner.
  * @property phone_number the phone number of the owner, stored as a string (eg: '780-555-1234').
- * @property campsite_uids the UIDs of every campsite this owner has registered.
+ * @property _campsite_uids the private, editable list of UIDs of every campsite this owner has registered.
+ *      Only this class can change it, through setCampsiteUids, addCampsiteUid and removeCampsiteUid.
+ * @property campsite_uids a public, read-only view of _campsite_uids. Other code can read it but not change it,
+ *      and it always shows the owner's current list.
  */
 class CampsiteOwner(
     val UID: String = "",
     private var name: String = "",
     private var email: String = "",
     private var phone_number: String = "",
-    private var campsite_uids: MutableList<String> = mutableListOf()
+    private var _campsite_uids: MutableList<String> = mutableListOf()
 ) {
+
+    val campsite_uids: List<String> get() = _campsite_uids
 
     /**
      * This getter simply returns the name of the owner.
@@ -92,7 +97,7 @@ class CampsiteOwner(
      * @return a read-only List of campsite UIDs.
      */
     fun getCampsiteUids(): List<String> {
-        return campsite_uids.toList()
+        return _campsite_uids.toList()
     }
 
     /**
@@ -103,7 +108,7 @@ class CampsiteOwner(
      * @return Nothing
      */
     fun setCampsiteUids(campsite_uids: List<String>) {
-        this.campsite_uids = campsite_uids.toMutableList()
+        this._campsite_uids = campsite_uids.toMutableList()
     }
 
     /**
@@ -114,8 +119,8 @@ class CampsiteOwner(
      * @return Nothing
      */
     fun addCampsiteUid(campsite_uid: String) {
-        if (campsite_uid.isNotBlank() && !campsite_uids.contains(campsite_uid)) {
-            campsite_uids.add(campsite_uid)
+        if (campsite_uid.isNotBlank() && !_campsite_uids.contains(campsite_uid)) {
+            _campsite_uids.add(campsite_uid)
         }
     }
 
@@ -127,6 +132,6 @@ class CampsiteOwner(
      * @return Nothing
      */
     fun removeCampsiteUid(campsite_uid: String) {
-        campsite_uids.remove(campsite_uid)
+        _campsite_uids.remove(campsite_uid)
     }
 }
