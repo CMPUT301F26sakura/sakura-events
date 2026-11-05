@@ -74,7 +74,7 @@ class Reservation (public val UID: String = "",
      * there are no parameters for this method. It acts directly on the class properties.
      * @return a formatted string containing both the beginning and end dates of the reservation.
      */
-    fun getBegginingDate(): String {
+    fun getBeginningDate(): String {
         return beginning_date
     }
     fun getEndDate(): String {
