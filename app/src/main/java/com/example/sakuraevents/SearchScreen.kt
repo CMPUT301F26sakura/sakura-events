@@ -1,5 +1,7 @@
 package com.example.sakuraevents
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -34,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -68,7 +72,7 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
             },
             bottomBar = {
                 BottomAppBar(
-                    containerColor = COLOURS.GREEN.colour
+                    containerColor = COLOURS.DARKYELLOW.colour
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -79,15 +83,15 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                                 imageVector = Icons.Default.Home,
                                 contentDescription = "Home",
                                 modifier = Modifier.size(40.dp),
-                                tint = if (current_icon == "Home") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
+                                tint = COLOURS.BLACK.colour
                             )
                         }
                         IconButton(onClick = { navController.navigate("Search") }) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search",
-                                modifier = Modifier.size(40.dp),
-                                tint = if (current_icon == "Search") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
+                                modifier = Modifier.size(40.dp).background(COLOURS.LIGHTYELLOW.colour),
+                                tint = COLOURS.BLACK.colour
                             )
                         }
                         IconButton(onClick = { navController.navigate("Profile") }) {
@@ -95,13 +99,14 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "Profile",
                                 modifier = Modifier.size(40.dp),
-                                tint = if (current_icon == "Profile") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
+                                tint = COLOURS.BLACK.colour
                             )
                         }
                     }
                 }
 
-            }
+            },
+            containerColor = COLOURS.LIGHTYELLOW.colour
         ) { innerPadding ->
             //put your US stories code under
 
@@ -121,7 +126,8 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                         label = {
                             Text("Search")
                         },
-                        modifier = Modifier.testTag("searchBarInput")
+                        singleLine = true,
+                        modifier = Modifier.testTag("searchBarInput").clip(RoundedCornerShape(10.dp))
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -157,6 +163,8 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                 Column(modifier = modifier.weight(0.5f)) {
                     Text(text = campsite.getName(), fontSize = 24.sp)
                     Text(text = campsite.getLocation(), fontSize = 25.sp)
+                    Text(text = campsite.getMaxOccupancy().toString(), fontSize = 26.sp)
+                    Text(text = campsite.getAvgRating(), fontSize = 27.sp)
                 }
             }
 

@@ -67,7 +67,7 @@ open class Entrant (val UID: String= "",
         phone_number = newPhoneNumber
     }
     fun addNotification(notification: Notification) {
-        if (_notifications.any { it === notification })
+        if (!_notifications.any { it === notification })
             _notifications.add(notification)
     }
 

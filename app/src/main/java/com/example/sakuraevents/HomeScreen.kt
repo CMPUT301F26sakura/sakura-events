@@ -1,6 +1,7 @@
 package com.example.sakuraevents
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -54,7 +55,7 @@ fun homeScreen(navController: NavController, firestoreDriver: FirestoreDriver, m
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = COLOURS.GREEN.colour
+                containerColor = COLOURS.DARKYELLOW.colour
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -64,8 +65,8 @@ fun homeScreen(navController: NavController, firestoreDriver: FirestoreDriver, m
                         Icon(
                             imageVector = Icons.Default.Home,
                             contentDescription = "Home",
-                            modifier = Modifier.size(40.dp),
-                            tint = if (current_icon == "Home") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
+                            modifier = Modifier.size(40.dp).background(COLOURS.LIGHTYELLOW.colour),
+                            tint = COLOURS.BLACK.colour
                         )
                     }
                     IconButton(onClick = { navController.navigate("Search") }) {
@@ -73,7 +74,7 @@ fun homeScreen(navController: NavController, firestoreDriver: FirestoreDriver, m
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
                             modifier = Modifier.size(40.dp),
-                            tint = if (current_icon == "Search") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
+                            tint = COLOURS.BLACK.colour
                         )
                     }
                     IconButton(onClick = { navController.navigate("Profile") }) {
@@ -81,13 +82,14 @@ fun homeScreen(navController: NavController, firestoreDriver: FirestoreDriver, m
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profile",
                             modifier = Modifier.size(40.dp),
-                            tint = if (current_icon == "Profile") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
+                            tint = COLOURS.BLACK.colour
                         )
                     }
                 }
             }
 
-        }
+        },
+        containerColor = COLOURS.LIGHTYELLOW.colour
     ) { innerPadding ->
         //put your US stories code under
 
