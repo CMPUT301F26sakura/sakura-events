@@ -1,5 +1,12 @@
 package com.example.sakuraevents
 
+enum class ReservationState {
+    NEW,
+    ACTIVE,
+    COMPLETE,
+    CANCELLED
+}
+
 /**
  * Represents a reservation for a campsite at a specific set of dates.
  * This occurs when a user wins a lottery and selects from the available dates for a given campsite.
@@ -15,18 +22,20 @@ package com.example.sakuraevents
  * @property end_date the date on which the reservation ends.
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
-class Reservation (private val campsite: Campsite,
+class Reservation (val UID: String = "",
+                   private val campsite: Campsite,
                    private val entrant: Entrant,
                    private val guest_count: Int,
                    private val beginning_date: String,
-                   private val end_date: String) {
+                   private val end_date: String,
+                   private var reservation_state: ReservationState = ReservationState.NEW ){
 
     /**
      * The init block here handles adding this reservation to its Campsite and Entrant.
      */
     init {
-        Entrant.addReservation(this)
-        Campsite.addReservation(this)
+        entrant.addReservation(this)
+        campsite.addReservation(this)
     }
 
     /**
@@ -65,8 +74,28 @@ class Reservation (private val campsite: Campsite,
      * there are no parameters for this method. It acts directly on the class properties.
      * @return a formatted string containing both the beginning and end dates of the reservation.
      */
-    fun getDates(): String {
-        return "$beginning_date to $end_date"
+    fun getBeginningDate(): String {
+        return beginning_date
+    }
+    fun getEndDate(): String {
+        return end_date
+    }
+
+    /**
+     *
+     * @param new_state can be any valid ReservationState enum, which are: NEW, ACTIVE, COMPLETE, CANCELLED
+     * @return Nothing.
+     */
+    fun setState(new_state: ReservationState) {
+        reservation_state = new_state
+    }
+
+    /**
+     * Provides a string representation of the current state.
+     * @return formatted state string.
+     */
+    fun getState(): String {
+        return reservation_state.name
     }
 
     /**
@@ -75,10 +104,9 @@ class Reservation (private val campsite: Campsite,
      * Then, the reservation is removed from the database and cleaned up.
      *
      * This method requires no parameters as it directly references the properties of the parent class.
-     * @return Nothing
      */
-    fun cancelReservation(): {
-        Entrant.removeReservation(this)
-        Campsite.removeReservation(this)
+    fun deleteReservation(): Unit {
+        entrant.removeReservation(this)
+        campsite.removeReservation(this)
     }
 }
