@@ -1,5 +1,6 @@
 package com.example.sakuraevents
 
+import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import kotlin.to
 import com.google.firebase.Firebase
@@ -16,33 +17,38 @@ class FirestoreDriver {
     private val _reservations = mutableMapOf<String, Reservation>()
     private val _campsites = mutableMapOf<String, Campsite>()
     private val _entrants = mutableMapOf<String, Entrant>()
-    //private val _owners = mutableMapOf<String, Owner>()
+    private val _owners = mutableMapOf<String, CampsiteOwner>()
     //private val _admins = mutableMapOf<String, Admin>()
     //private val _notifications = mutableMapOf<String, Notification>()
 
     val reservations: Map<String, Reservation> get() = _reservations
     val campsites: Map<String, Campsite> get() = _campsites
     val entrants: Map<String, Entrant> get() = _entrants
-    //val owners: Map<String, Owner> get() = _owners
+    val owners: Map<String, CampsiteOwner> get() = _owners
     //val admins: Map<String, Admin> get() = _admins
     //val notifications: Map<String, Notification> get() = _notifications
 
     val db = Firebase.firestore
-    private val auth = FirebaseAuth.getInstance()
+    private val auth = FirebaseAuth.getInstance().signInAnonymously()
     private val reservations_ref = db.collection("reservations")
     private val campsites_ref = db.collection("campsites")
     private val entrants_ref = db.collection("entrants")
+    private val owners_ref = db.collection("owners")
+    private val admins_ref = db.collection("admins")
+    private val notifications_ref = db.collection("notifications")
 
 
     /**
      *
      */
     init {
-        Tasks.await(auth.signInAnonymously())
+        //Tasks.await(auth.signInAnonymously())
+
 
         // Each of these ref.addSnapshotListener are what handle both assembling the arrays and updating them.
         // This code is adapted from the lab05 listyCity code. It is mostly modified in how it retrieves
         // the info from the document file because parts of our classes don't serialize cleanly.
+        //assert(false)
         campsites_ref.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 return@addSnapshotListener
@@ -96,8 +102,26 @@ class FirestoreDriver {
                         name = entrant["name"] as String,
                         email = entrant["email"] as String,
                         phone_number = entrant["phone_number"] as String,
-                        _reservations = mutableListOf<Reservation>(),
                         _notifications = mutableListOf<Notification>()
+                    )
+                }
+            }
+        }
+
+        owners_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            _owners.clear()
+            snapshot?.documents?.forEach { document ->
+                val owner: Map<String, Any>? = document.data
+                if (owner != null) {
+                    _owners[document.id] = CampsiteOwner(
+                        UID = document.id,
+                        name = owner["name"] as String,
+                        email = owner["email"] as String,
+                        phone_number = owner["phone_number"] as String,
+                        _owned_campsites = (owner["owned_campsites"] as List<*>).map { uid -> _campsites[uid as String] as Campsite }.toMutableList()
                     )
                 }
             }
@@ -124,7 +148,7 @@ class FirestoreDriver {
         }
     }
 
-    fun addReservation(reservation: Reservation) {
+    fun addReservation(reservation: Reservation): Task<Void> {
         val firestore_format = mapOf<String, Any>( // Any type is a little dangerous, requires us to be disciplined in our typing.
             "campsite" to reservation.getCampsite().UID,
             "entrant" to reservation.getEntrant().UID,
@@ -132,16 +156,16 @@ class FirestoreDriver {
             "beginning_date" to reservation.getBeginningDate(),
             "end_date" to reservation.getEndDate(),
             "reservation_state" to reservation.getState())
-        Tasks.await(reservations_ref.document(reservation.UID).set(firestore_format))
+        return reservations_ref.document(reservation.UID).set(firestore_format)
     }
-    fun deleteReservation(reservation: Reservation) {
+    fun deleteReservation(reservation: Reservation): Task<Void> {
         // I think I need to add something here that also removes the object references.
         // This will likely involve invoking reservation.deleteReservation
         reservation.deleteReservation()
-        Tasks.await(reservations_ref.document(reservation.UID).delete())
+        return reservations_ref.document(reservation.UID).delete()
     }
 
-    fun addCampsite(campsite: Campsite) {
+    fun addCampsite(campsite: Campsite): Task<Void> {
         val UID: String
         if (_campsites.isNotEmpty()) {
             UID = ((_campsites.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
@@ -160,14 +184,14 @@ class FirestoreDriver {
             "booking_period_dates" to campsite.booking_period_dates,
             "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
             "average_rating" to campsite.getAvgRating())
-        Tasks.await(campsites_ref.document(UID).set(firestore_format))
+        return campsites_ref.document(UID).set(firestore_format)
     }
-    fun deleteCampsite(campsite: Campsite) {
+    fun deleteCampsite(campsite: Campsite): Task<Void> {
         campsite.clearReservations()
-        Tasks.await(campsites_ref.document(campsite.UID).delete())
+        return campsites_ref.document(campsite.UID).delete()
     }
 
-    fun addEntrant(entrant: Entrant) {
+    fun addEntrant(entrant: Entrant): Task<Void> {
         val UID: String
         if (_entrants.isNotEmpty()) {
             UID = ((_entrants.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
@@ -180,10 +204,30 @@ class FirestoreDriver {
             "email" to entrant.getEmail(),
             "phone_number" to entrant.getPhoneNumber(),
             "notifications" to entrant.notifications.map { it.UID })
-        Tasks.await(entrants_ref.document(UID).set(firestore_format))
+        return entrants_ref.document(UID).set(firestore_format)
     }
-    fun deleteEntrant(entrant: Entrant) {
+    fun deleteEntrant(entrant: Entrant): Task<Void> {
         entrant.clearReservations()
-        Tasks.await(entrants_ref.document(entrant.UID).delete())
+        return entrants_ref.document(entrant.UID).delete()
+    }
+
+    fun addOwner(owner: CampsiteOwner): Task<Void> {
+        val UID: String
+        if (_owners.isNotEmpty()) {
+            UID = ((_owners.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
+        }
+        else {
+            UID = "0"
+        }
+        val firestore_format = mapOf<String, Any>(
+            "name" to owner.getName(),
+            "email" to owner.getEmail(),
+            "phone_number" to owner.getPhoneNumber(),
+            "owned_campsites" to owner.owned_campsites.map { it.UID })
+        return owners_ref.document(UID).set(firestore_format)
+    }
+    fun deleteOwner(owner: CampsiteOwner): Task<Void> {
+        // If we delete an owner should we also remove all of their campsites? Question for later.
+        return owners_ref.document(owner.UID).delete()
     }
 }
