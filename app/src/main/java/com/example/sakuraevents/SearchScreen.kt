@@ -1,5 +1,6 @@
 package com.example.sakuraevents
 
+import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -40,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -90,7 +93,9 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search",
-                                modifier = Modifier.size(40.dp).background(COLOURS.LIGHTYELLOW.colour),
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(COLOURS.LIGHTYELLOW.colour),
                                 tint = COLOURS.BLACK.colour
                             )
                         }
@@ -127,7 +132,9 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                             Text("Search")
                         },
                         singleLine = true,
-                        modifier = Modifier.testTag("searchBarInput").clip(RoundedCornerShape(10.dp))
+                        modifier = Modifier
+                            .testTag("searchBarInput")
+                            .clip(RoundedCornerShape(10.dp))
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -151,7 +158,6 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                         displayCampsites(campsite.value, search_bar)
                     }
                 }
-                Text(text = "Main Screen Content")
             }
         }
     }
@@ -159,20 +165,43 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
     @Composable
     fun displayCampsites(campsite: Campsite, search_bar: String) {
         if (search_bar == "" || (search_bar.lowercase() in campsite.getName().lowercase())) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = modifier.weight(0.5f)) {
-                    Text(text = campsite.getName(), fontSize = 24.sp)
-                    Text(text = campsite.getLocation(), fontSize = 25.sp)
-                    Text(text = campsite.getMaxOccupancy().toString(), fontSize = 26.sp)
-                    Text(text = campsite.getAvgRating(), fontSize = 27.sp)
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 15.dp, vertical = 0.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(COLOURS.GREEN.colour),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = modifier
+                    .weight(0.5f)
+                    .padding(start = 10.dp)) {
+                    Text(text = campsite.getName(),
+                         fontSize = 24.sp,
+                         color = COLOURS.WHITE.colour,
+                         textDecoration = TextDecoration.Underline)
+                    if (campsite.booking_period_dates.isNotEmpty()) {
+                        Text(text = "\uD83D\uDCC6 ${campsite.booking_period_dates[0]}",
+                             fontSize = 20.sp,
+                             color = COLOURS.WHITE.colour)
+                    }
+                    Text(text = "\uD83C\uDF0E ${campsite.getLocation()}",
+                         fontSize = 20.sp,
+                         color = COLOURS.WHITE.colour)
+                    Text(text = "\uD83D\uDC64 ${campsite.getMaxOccupancy()} Occupancy",
+                         fontSize = 20.sp,
+                         color = COLOURS.WHITE.colour)
+                    Text(text = "⭐ ${campsite.getAvgRating()}",
+                         fontSize = 20.sp,
+                         color = COLOURS.WHITE.colour)
                 }
+                Icon(
+                    imageVector = Icons.Default.BrokenImage,
+                    contentDescription = "TempImage",
+                    modifier = Modifier.size(200.dp),
+                    tint = COLOURS.BLACK.colour
+                )
+
             }
-
-            Text(
-                text = campsite.UID,
-                fontSize = 24.sp
-            )
-
         }
     }
 }
