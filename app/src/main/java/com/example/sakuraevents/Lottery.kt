@@ -143,7 +143,7 @@ class Lottery(
                 )
 
                 val notification = Notification(
-                    UID = "notif_${System.currentTimeMillis()}_${entrant.UID}",
+                    UID = "",
                     title = if (won) "Lottery Winner!" else "Lottery Result",
                     message = if (won) {
                         "Congratulations! You won the lottery for $campsiteNames. Please select your dates to reserve."

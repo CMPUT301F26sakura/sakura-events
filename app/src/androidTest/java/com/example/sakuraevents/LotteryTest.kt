@@ -44,8 +44,8 @@ class LotteryTest {
             start_time = "2027-05-01",
             end_time = "2027-05-07"
         )
-        camp1 = Campsite(UID = "c1", name = "Moraine Creek", location = "Banff", description = "Alpine site", max_occupancy = 4, price = 45f)
-        camp2 = Campsite(UID = "c2", name = "Maligne Canyon", location = "Jasper", description = "Canyon site", max_occupancy = 6, price = 50f)
+        camp1 = Campsite(UID = "", name = "Moraine Creek", location = "Banff", description = "Alpine site", max_occupancy = 4, price = 45f)
+        camp2 = Campsite(UID = "", name = "Maligne Canyon", location = "Jasper", description = "Canyon site", max_occupancy = 6, price = 50f)
     }
 
     /**
@@ -79,8 +79,8 @@ class LotteryTest {
         lottery.receiveCapacity(2)
 
         // Added role = Role.ENTRANT to satisfy the Entrant constructor
-        val e1 = Entrant(UID = "e1", role = Role.ENTRANT, name = "One", email = "1@uab.ca", phone_number = "111")
-        val e2 = Entrant(UID = "e2", role = Role.ENTRANT, name = "Two", email = "2@uab.ca", phone_number = "222")
+        val e1 = Entrant(UID = "", role = Role.ENTRANT, name = "One", email = "1@uab.ca", phone_number = "111")
+        val e2 = Entrant(UID = "", role = Role.ENTRANT, name = "Two", email = "2@uab.ca", phone_number = "222")
 
         // e1 joins camp1, e2 joins both camp1 and camp2
         // Changed joinWaitlist to addToWaitingList
@@ -106,9 +106,9 @@ class LotteryTest {
         lottery.receiveCapacity(1)
 
         // Added role = Role.ENTRANT here as well
-        val e1 = Entrant(UID = "e1", role = Role.ENTRANT, name = "Entrant A", email = "a@uab.ca", phone_number = "111")
-        val e2 = Entrant(UID = "e2", role = Role.ENTRANT, name = "Entrant B", email = "b@uab.ca", phone_number = "222")
-        val e3 = Entrant(UID = "e3", role = Role.ENTRANT, name = "Entrant C", email = "c@uab.ca", phone_number = "333")
+        val e1 = Entrant(UID = "", role = Role.ENTRANT, name = "Entrant A", email = "a@uab.ca", phone_number = "111")
+        val e2 = Entrant(UID = "", role = Role.ENTRANT, name = "Entrant B", email = "b@uab.ca", phone_number = "222")
+        val e3 = Entrant(UID = "", role = Role.ENTRANT, name = "Entrant C", email = "c@uab.ca", phone_number = "333")
 
         camp1.addToWaitingList(e1)
         camp1.addToWaitingList(e2)
