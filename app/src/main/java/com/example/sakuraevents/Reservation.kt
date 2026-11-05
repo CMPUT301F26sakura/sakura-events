@@ -23,7 +23,7 @@ enum class ReservationState {
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
 class Reservation (public val UID: String = "",
-                   private val campsite: Campsite = Campsite(),
+                   private val campsite: Campsite,
                    private val entrant: Entrant,
                    private val guest_count: Int,
                    private val beginning_date: String,
