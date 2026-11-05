@@ -30,6 +30,20 @@ class FirestoreDriver {
     private val campsites_ref = db.collection("campsites")
 
     init {
+        reservations_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+
+            _reservations.clear()
+
+            snapshot?.documents?.forEach() { document ->
+                val reservation = document.id
+                if (reservation != null) {
+                    _reservations.
+                }
+            }
+        }
 
     }
 
