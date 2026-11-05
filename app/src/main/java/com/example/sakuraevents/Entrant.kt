@@ -1,6 +1,7 @@
 package com.example.sakuraevents
 
-import android.app.Notification
+
+
 
 /**
  * Represents an entrant in the Sakura Events app.
@@ -20,11 +21,12 @@ class Entrant (
     userName: String,
     userEmail: String,
     phoneNumber: String,
-    //val UID: String = ""
+    private val _reservations: MutableList<Reservation> = mutableListOf(),
+    private val _notifications: MutableList<Notification> = mutableListOf()
 ) : User(UID, userName, userEmail, phoneNumber){
     // Store the entrant reservations.
-    val reservations = mutableListOf<Reservation>()
-    val notifications = mutableListOf<Notification>()
+    val reservations get() = _reservations.toList()
+    val notifications get() = _notifications.toList()
     //TODO: Enable when the team message class is ready
     //val messages = mutableListOf<Message>()
 
@@ -32,7 +34,7 @@ class Entrant (
      * Add the reservation to the entrant list
      */
     fun addReservation(reservation: Reservation ){
-        reservations.add(reservation)
+        _reservations.add(reservation)
         // TODO : connect to reservation class when ready
     }
 
@@ -42,11 +44,11 @@ class Entrant (
      * @return reservation the reservation to remove
      */
     fun removeReservation(reservation: Reservation) {
-        reservations.remove(reservation)
+        _reservations.removeIf{it == reservation}
     }
 
     fun addNotification(notification: Notification) {
-        notifications.add(notification)
+        _notifications.add(notification)
     }
 
 

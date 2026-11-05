@@ -29,13 +29,13 @@ open class User (
     fun getEmail(): String {
         return userEmail
     }
-    fun updateUserName(newName: String) {
+    fun setUserName(newName: String) {
         userName = newName
     }
-    fun updateEmail(newEmail: String) {
+    fun setEmail(newEmail: String) {
         userEmail = newEmail
     }
-    fun updatePhoneNumber(newPhoneNumber: String) {
+    fun setPhoneNumber(newPhoneNumber: String) {
         phoneNumber = newPhoneNumber
     }
 }
