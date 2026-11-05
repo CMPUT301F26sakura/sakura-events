@@ -31,15 +31,17 @@ class Campsite(
         return waitlist_capacity
     }
     fun setWaitlistCapacity(new_capacity: Int): Boolean {
-        if (new_capacity >= 0)
+        if (new_capacity >= 0) {
             waitlist_capacity = new_capacity
             return true
+        }
         return false
     }
     fun addToWaitingList(entrant: Entrant): Boolean {
-        if ((waitlist_capacity == 0 || _waiting_list.count() < waitlist_capacity) && !_waiting_list.any { it === entrant })
+        if ((waitlist_capacity == 0 || _waiting_list.count() < waitlist_capacity) && !_waiting_list.any { it === entrant }) {
             _waiting_list.add(entrant)
             return true
+        }
         return false
     }
     fun removeFromWaitingList(entrant: Entrant) {
