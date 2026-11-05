@@ -1,5 +1,6 @@
 package com.example.sakuraevents
 
+
 // Notification.kt: model class for notifications sent to entrants.
 // Written with help from Anthropic, Claude, "Kotlin Notification model class", 2026-11-04
 

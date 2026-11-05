@@ -16,26 +16,26 @@ package com.example.sakuraevents
 
 open class User (
     val UID: String= "",
-    private var userName: String,
-    private var userEmail: String,
-    private var phoneNumber: String
+    private var name: String,
+    private var email: String,
+    private var phone_number: String
 ){
-    fun getUserName(): String {
-        return userName
+    fun getName(): String {
+        return name
     }
     fun getPhoneNumber(): String {
-        return phoneNumber
+        return phone_number
     }
     fun getEmail(): String {
-        return userEmail
+        return email
     }
-    fun setUserName(newName: String) {
-        userName = newName
+    fun setName(newName: String) {
+        name = newName
     }
     fun setEmail(newEmail: String) {
-        userEmail = newEmail
+        email = newEmail
     }
     fun setPhoneNumber(newPhoneNumber: String) {
-        phoneNumber = newPhoneNumber
+        phone_number = newPhoneNumber
     }
 }

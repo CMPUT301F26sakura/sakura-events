@@ -22,8 +22,8 @@ enum class ReservationState {
  * @property end_date the date on which the reservation ends.
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
-class Reservation (public val UID: String = "",
-                   private val campsite: Campsite = Campsite(),
+class Reservation (val UID: String = "",
+                   private val campsite: Campsite,
                    private val entrant: Entrant,
                    private val guest_count: Int,
                    private val beginning_date: String,
@@ -96,16 +96,6 @@ class Reservation (public val UID: String = "",
      */
     fun getState(): String {
         return reservation_state.name
-    }
-
-    /**
-     * This getter returns the string value of the reservation's UID.
-     *
-     * This method does not take any input parameters.
-     * @return the string repr of the UID.
-     */
-    fun getUID(): String {
-        return UID
     }
 
     /**

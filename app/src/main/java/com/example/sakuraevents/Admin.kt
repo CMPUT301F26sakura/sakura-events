@@ -14,71 +14,17 @@ package com.example.sakuraevents
  * Admin.kt will only contain admin-related functions. The database methods still need
  *to be connected once the driver is finished.
  */
-class Admin {
+class Admin (
+    UID: String = "",
+    name: String,
+    email: String,
+    phone_number: String,
+    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+    private val _notifications: MutableList<Notification> = mutableListOf<Notification>(),
+    private var _owned_campsites: MutableList<Campsite> = mutableListOf()
+): User(UID, name, email, phone_number){
+    val reservations: List<Reservation> get() = _reservations
+    val notifications: List<Notification> get() = _notifications
+    val owned_campsites: List<Campsite> get() = _owned_campsites
 
-    //TODO: Link Admin to the shared User class so admins
-    // can also use entrant and owner features with the same account.
-
-    /**
-     * Gets all registered campsites.
-     *
-     * @return A list of campsites.
-     */
-    //fun getCampsites(): List<Campsite> {
-        //TODO("Get campsites from FirestoreDriver")
-    //}
-
-    /**
-     * Removes a registered campsite.
-     *
-     * @param campsite The campsite to remove.
-     */
-    //fun removeCampsite(campsite: Campsite) {
-        //TODO("Connect campsite removal to FirestoreDriver")
-    //}
-
-    /**
-     * Gets all user profiles.
-     *
-     * @return A list of user profiles.
-     */
-    fun getProfiles(): List<String> {
-        TODO("Get profiles from FirestoreDriver")
-    }
-
-    /**
-     * Removes a user profile.
-     *
-     * @param profile_uid UID of the profile to remove.
-     */
-    fun removeProfile(profile_uid: String) {
-        TODO("Connect profile removal to FirestoreDriver")
-    }
-
-    /**
-     * Removes an uploaded image.
-     *
-     * @param image_uid UID of the image to remove.
-     */
-    fun removeImage(image_uid: String) {
-        TODO("Connect image removal to FirestoreDriver")
-    }
-
-    /**
-     * Checks if the admin can use entrant features.
-     *
-     * @return True if entrant features are available.
-     */
-    fun canUseEntrantFeatures(): Boolean {
-        TODO("Connect to the shared user role system")
-    }
-
-    /**
-     * Checks if the admin can use campsite owner features.
-     *
-     * @return True if owner features are available.
-     */
-    fun canUseOwnerFeatures(): Boolean {
-        TODO("Connect to the shared user role system")
-    }
 }
