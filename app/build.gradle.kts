@@ -48,8 +48,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.firebase.common.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.auth)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -59,4 +59,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-auth")
 }

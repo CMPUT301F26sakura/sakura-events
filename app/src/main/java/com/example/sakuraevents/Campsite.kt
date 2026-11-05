@@ -2,12 +2,12 @@ package com.example.sakuraevents
 
 class Campsite(
     val UID: String = "",
-    private var name: String = "",
-    private var location: String = "",
-    private var description: String = "",
-    private var max_occupancy: Int = 1,
+    private var name: String,
+    private var location: String,
+    private var description: String,
+    private var max_occupancy: Int,
     private var qr_code: String = "",
-    private var price: Float = 0.0f,
+    private var price: Float,
     private var _tags: MutableList<String> = mutableListOf(),
     private var _booking_period_dates: MutableList<String> = mutableListOf(),
     private var _reservations: MutableList<Reservation> = mutableListOf(),
@@ -104,5 +104,13 @@ class Campsite(
             }
             average_rating = sum / _ratings.size
         }
+    }
+
+    /**
+     * In order to safely delete this campsite we need to remove every reservation that refers to it.
+     * Under normal circumstances this should only be invoked by the firestoreDriver.
+     */
+    fun clearReservations() {
+        _reservations.forEach { it.deleteReservation() }
     }
 }
