@@ -1,64 +1,39 @@
 
-
 package com.example.sakuraevents
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Displays the admin management screen.
+ * Displays the admin dashboard.
  *
- * Allows admins to browse and remove campsites, profiles,
- * and images, as well as view notification and message logs.
- *
- * Currently working on campsite management.
+ * Admins can access campsite, profile, and image management.
+ * The other admin pages will be added as they are implemented.
  */
 @Composable
-fun AdminScreen() {
-
-    val repository = remember { AdminRepository() }
-
+fun AdminScreen(
+    on_campsites: () -> Unit,
+    on_profiles: () -> Unit,
+    on_images: () -> Unit
+) {
     Column(modifier = Modifier.padding(16.dp)) {
 
-        Text("Admin - Campsites")
+        Text("Admin Dashboard")
 
-        // Display the campsites from Firestore
-        repository.campsites.forEach { campsite ->
-            Text(campsite.name)
-            Text(campsite.location)
-
-            // Remove the campsite when Delete is pressed
-            Button(onClick = {
-                repository.deleteCampsite(campsite.id)
-            }) {
-                Text("Delete")
-            }
+        // Admin management options
+        Button(onClick = on_campsites) {
+            Text("Manage Campsites")
         }
 
-        // TODO: Profile management
-        // Browse user profiles (US 03.05.01)
-        // Remove user profiles (US 03.02.01)
+        Button(onClick = on_profiles) {
+            Text("Manage Profiles")
+        }
 
-        // TODO: Image management
-        // Browse uploaded images (US 03.06.01)
-        // Remove uploaded images (US 03.03.01)
-
-        // TODO: Campsite owner management
-        // Remove owners who violate app policy (US 03.07.01)
-
-        // TODO: Notification logs
-        // View all notification logs (US 03.08.01)
-
-        // TODO: Message logs
-        // View owner-to-entrant messages (US 03.12.01)
-
-        // TODO: Admin roles
-        // Allow admins to use owner and entrant features (US 03.11.01)
+        Button(onClick = on_images) {
+            Text("Manage Images")
+        }
     }
 }
