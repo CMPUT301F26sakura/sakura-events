@@ -21,13 +21,14 @@ package com.example.sakuraevents
  */
 open class CampsiteOwner(
     UID: String = "",
+    role: Role,
     name: String,
     email: String,
     phone_number: String,
     _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
     _notifications: MutableList<Notification> = mutableListOf<Notification>(),
     private var _owned_campsites: MutableList<Campsite> = mutableListOf()
-): Entrant(UID, name, email, phone_number, _reservations, _notifications) {
+): Entrant(UID, role, name, email, phone_number, _reservations, _notifications) {
 
     val owned_campsites: List<Campsite> get() = _owned_campsites
 

@@ -2,6 +2,11 @@ package com.example.sakuraevents
 
 import kotlin.collections.mutableListOf
 
+enum class Role {
+    ENTRANT,
+    OWNER,
+    ADMIN,
+}
 
 /**
  * Represents an entrant in the Sakura Events app.
@@ -17,11 +22,12 @@ import kotlin.collections.mutableListOf
  */
 
 open class Entrant (val UID: String= "",
-               private var name: String,
-               private var email: String,
-               private var phone_number: String,
-               private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
-               private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
+                    private val role: Role,
+                    private var name: String,
+                    private var email: String,
+                    private var phone_number: String,
+                    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+                    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
 
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
@@ -38,6 +44,9 @@ open class Entrant (val UID: String= "",
         _reservations.forEach { it.deleteReservation() }
     }
 
+    fun getRole(): String {
+        return role.toString()
+    }
     fun getName(): String {
         return name
     }
@@ -56,6 +65,10 @@ open class Entrant (val UID: String= "",
     }
     fun setPhoneNumber(newPhoneNumber: String) {
         phone_number = newPhoneNumber
+    }
+    fun addNotification(notification: Notification) {
+        if (_notifications.any { it === notification })
+            _notifications.add(notification)
     }
 
 }

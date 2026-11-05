@@ -16,12 +16,13 @@ package com.example.sakuraevents
  */
 class Admin (
     UID: String = "",
+    role: Role,
     name: String,
     email: String,
     phone_number: String,
     _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
     _notifications: MutableList<Notification> = mutableListOf<Notification>(),
     _owned_campsites: MutableList<Campsite> = mutableListOf()
-): CampsiteOwner(UID, name, email, phone_number, _reservations, _notifications, _owned_campsites){
+): CampsiteOwner(UID, role, name, email, phone_number, _reservations, _notifications, _owned_campsites){
 
 }

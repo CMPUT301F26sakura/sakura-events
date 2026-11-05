@@ -17,12 +17,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val firestoreDriver = FirestoreDriver()
         setContent {
             SakuraEventsTheme {
-               entrantApp()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    mainNavigator(firestoreDriver, modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
+}
 
 
