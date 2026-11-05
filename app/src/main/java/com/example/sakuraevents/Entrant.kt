@@ -17,13 +17,13 @@ package com.example.sakuraevents
  */
 
 class Entrant (
-    UID: String,
-    userName: String,
-    userEmail: String,
-    phoneNumber: String,
+    private val uid: String,
+    private val name: String,
+    private val  email: String,
+    private val  phoneNumber: String,
     private val _reservations: MutableList<Reservation> = mutableListOf(),
     private val _notifications: MutableList<Notification> = mutableListOf()
-) : User(UID, userName, userEmail, phoneNumber){
+) : User(uid, name, email, phoneNumber){
     // Store the entrant reservations.
     val reservations get() = _reservations.toList()
     val notifications get() = _notifications.toList()
@@ -40,12 +40,17 @@ class Entrant (
 
     /**
      * Remove a reservation from the entrant list
-     *
+     * Checks that it is the exact same reservation object.
      * @return reservation the reservation to remove
      */
     fun removeReservation(reservation: Reservation) {
-        _reservations.removeIf{it == reservation}
+        _reservations.removeIf{it === reservation}
     }
+    /**
+     * Adds a notification to the entrant's notification list.
+     *
+     * @param notification the notification to add
+     */
 
     fun addNotification(notification: Notification) {
         _notifications.add(notification)
