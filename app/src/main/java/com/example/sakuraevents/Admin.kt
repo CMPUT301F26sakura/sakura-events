@@ -16,15 +16,13 @@ package com.example.sakuraevents
  */
 class Admin (
     UID: String = "",
+    role: Role,
     name: String,
     email: String,
     phone_number: String,
-    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
-    private val _notifications: MutableList<Notification> = mutableListOf<Notification>(),
-    private var _owned_campsites: MutableList<Campsite> = mutableListOf()
-): User(UID, name, email, phone_number){
-    val reservations: List<Reservation> get() = _reservations
-    val notifications: List<Notification> get() = _notifications
-    val owned_campsites: List<Campsite> get() = _owned_campsites
+    _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+    _notifications: MutableList<Notification> = mutableListOf<Notification>(),
+    _owned_campsites: MutableList<Campsite> = mutableListOf()
+): CampsiteOwner(UID, role, name, email, phone_number, _reservations, _notifications, _owned_campsites){
 
 }

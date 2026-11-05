@@ -31,11 +31,11 @@ enum class NotificationType {
 class Notification(
     val UID: String = "",
     private val notification_type: NotificationType = NotificationType.OWNER_MESSAGE,
-    private val sender: CampsiteOwner = CampsiteOwner(),
-    private val campsite: Campsite = Campsite(),
-    private val title: String = "",
-    private val message: String = "",
-    private val _recipients: List<Entrant> = listOf(),
+    private val sender: CampsiteOwner,
+    private val campsite: Campsite,
+    private val title: String,
+    private val message: String,
+    private val _recipients: List<Entrant>,
     private val date_sent: String = ""
 ) {
     val recipients: List<Entrant> get() = _recipients

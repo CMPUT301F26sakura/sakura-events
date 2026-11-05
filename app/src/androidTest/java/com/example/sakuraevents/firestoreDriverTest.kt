@@ -19,8 +19,9 @@ class FirestoreDriverTest {
 
     @Test
     fun insertCampsite() {
-        val campsite: Campsite = Campsite(name = "Blorp", location = "Sheep", description = "maximus", max_occupancy = 15, price = 1.15f)
-        evilFirestore.addCampsite(campsite)
+        val campsite: Campsite = Campsite(name = "Blorp", location = "mreep", description = "maximus", max_occupancy = 15, price = 1.15f)
+        Tasks.await(evilFirestore.addCampsite(campsite))
+        Thread.sleep(4_000)
         assertEquals("0", (evilFirestore.campsites["0"] as Campsite).UID)
         assert(evilFirestore.campsites.isNotEmpty())
 

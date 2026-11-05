@@ -19,13 +19,16 @@ package com.example.sakuraevents
  * @property owned_campsites a public, read-only view of _owned_campsites. Other code can read it but not change it,
  *      and it always shows the owner's current list.
  */
-class CampsiteOwner(
+open class CampsiteOwner(
     UID: String = "",
+    role: Role,
     name: String,
     email: String,
     phone_number: String,
+    _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+    _notifications: MutableList<Notification> = mutableListOf<Notification>(),
     private var _owned_campsites: MutableList<Campsite> = mutableListOf()
-): User(UID, name, email, phone_number) {
+): Entrant(UID, role, name, email, phone_number, _reservations, _notifications) {
 
     val owned_campsites: List<Campsite> get() = _owned_campsites
 
