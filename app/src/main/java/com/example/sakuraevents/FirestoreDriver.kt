@@ -39,7 +39,6 @@ class FirestoreDriver {
      */
     init {
         Tasks.await(auth.signInAnonymously())
-        assert(auth.currentUser != null)
 
         // Each of these ref.addSnapshotListener are what handle both assembling the arrays and updating them.
         // This code is adapted from the lab05 listyCity code. It is mostly modified in how it retrieves
@@ -133,13 +132,13 @@ class FirestoreDriver {
             "beginning_date" to reservation.getBeginningDate(),
             "end_date" to reservation.getEndDate(),
             "reservation_state" to reservation.getState())
-        reservations_ref.document(reservation.UID).set(firestore_format)
+        Tasks.await(reservations_ref.document(reservation.UID).set(firestore_format))
     }
     fun deleteReservation(reservation: Reservation) {
         // I think I need to add something here that also removes the object references.
         // This will likely involve invoking reservation.deleteReservation
         reservation.deleteReservation()
-        reservations_ref.document(reservation.UID).delete()
+        Tasks.await(reservations_ref.document(reservation.UID).delete())
     }
 
     fun addCampsite(campsite: Campsite) {
@@ -165,7 +164,7 @@ class FirestoreDriver {
     }
     fun deleteCampsite(campsite: Campsite) {
         campsite.clearReservations()
-        campsites_ref.document(campsite.UID).delete()
+        Tasks.await(campsites_ref.document(campsite.UID).delete())
     }
 
     fun addEntrant(entrant: Entrant) {
@@ -177,14 +176,14 @@ class FirestoreDriver {
             UID = "0"
         }
         val firestore_format = mapOf<String, Any>(
-            "name" to entrant.getUserName(),
-            "email" to entrant.getUserEmail(),
+            "name" to entrant.getName(),
+            "email" to entrant.getEmail(),
             "phone_number" to entrant.getPhoneNumber(),
             "notifications" to entrant.notifications.map { it.UID })
-        entrants_ref.document(UID).set(firestore_format)
+        Tasks.await(entrants_ref.document(UID).set(firestore_format))
     }
     fun deleteEntrant(entrant: Entrant) {
         entrant.clearReservations()
-        entrants_ref.document(entrant.UID).delete()
+        Tasks.await(entrants_ref.document(entrant.UID).delete())
     }
 }
