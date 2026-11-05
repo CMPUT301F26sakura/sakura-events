@@ -1,8 +1,10 @@
 package com.example.sakuraevents
 
+import com.google.android.gms.tasks.Tasks
 import kotlin.to
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.auth.FirebaseAuth
 
 
 /**
@@ -25,7 +27,8 @@ class FirestoreDriver {
     //val admins: Map<String, Admin> get() = _admins
     //val notifications: Map<String, Notification> get() = _notifications
 
-    private val db = Firebase.firestore
+    val db = Firebase.firestore
+    private val auth = FirebaseAuth.getInstance()
     private val reservations_ref = db.collection("reservations")
     private val campsites_ref = db.collection("campsites")
     private val entrants_ref = db.collection("entrants")
@@ -35,6 +38,8 @@ class FirestoreDriver {
      *
      */
     init {
+        Tasks.await(auth.signInAnonymously())
+        assert(auth.currentUser != null)
 
         // Each of these ref.addSnapshotListener are what handle both assembling the arrays and updating them.
         // This code is adapted from the lab05 listyCity code. It is mostly modified in how it retrieves
@@ -73,7 +78,7 @@ class FirestoreDriver {
                         _reservations = mutableListOf<Reservation>(),
                         // The above is created without values because the reservations themselves handle adding themselves to this list.
                         _ratings = ratings,
-                        average_rating = (campsite["average_rating"] as Double).toFloat()
+                        average_rating = (campsite["average_rating"] as String).toFloat()
                     )
                 }
             }
@@ -156,7 +161,7 @@ class FirestoreDriver {
             "booking_period_dates" to campsite.booking_period_dates,
             "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
             "average_rating" to campsite.getAvgRating())
-        campsites_ref.document(UID).set(firestore_format)
+        Tasks.await(campsites_ref.document(UID).set(firestore_format))
     }
     fun deleteCampsite(campsite: Campsite) {
         campsite.clearReservations()
