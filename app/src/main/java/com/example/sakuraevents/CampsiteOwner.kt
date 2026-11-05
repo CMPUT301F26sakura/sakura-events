@@ -19,75 +19,18 @@ package com.example.sakuraevents
  * @property owned_campsites a public, read-only view of _owned_campsites. Other code can read it but not change it,
  *      and it always shows the owner's current list.
  */
-class CampsiteOwner(
-    val UID: String = "",
-    private var name: String = "",
-    private var email: String = "",
-    private var phone_number: String = "",
+open class CampsiteOwner(
+    UID: String = "",
+    role: Role,
+    name: String,
+    email: String,
+    phone_number: String,
+    _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+    _notifications: MutableList<Notification> = mutableListOf<Notification>(),
     private var _owned_campsites: MutableList<Campsite> = mutableListOf()
-) {
+): Entrant(UID, role, name, email, phone_number, _reservations, _notifications) {
 
     val owned_campsites: List<Campsite> get() = _owned_campsites
-
-    /**
-     * This getter simply returns the name of the owner.
-     *
-     * there are no parameters for this method. It acts directly on the class properties.
-     * @return the owner's name as a String.
-     */
-    fun getName(): String {
-        return name
-    }
-
-    /**
-     * This setter replaces the name of the owner.
-     *
-     * @param name the new name of the owner.
-     * @return Nothing
-     */
-    fun setName(name: String) {
-        this.name = name
-    }
-
-    /**
-     * This getter simply returns the email address of the owner.
-     *
-     * there are no parameters for this method. It acts directly on the class properties.
-     * @return the owner's email address as a String.
-     */
-    fun getEmail(): String {
-        return email
-    }
-
-    /**
-     * This setter replaces the email address of the owner.
-     *
-     * @param email the new email address of the owner.
-     * @return Nothing
-     */
-    fun setEmail(email: String) {
-        this.email = email
-    }
-
-    /**
-     * This getter simply returns the phone number of the owner.
-     *
-     * there are no parameters for this method. It acts directly on the class properties.
-     * @return the owner's phone number as a String.
-     */
-    fun getPhoneNumber(): String {
-        return phone_number
-    }
-
-    /**
-     * This setter replaces the phone number of the owner.
-     *
-     * @param phone_number the new phone number of the owner.
-     * @return Nothing
-     */
-    fun setPhoneNumber(phone_number: String) {
-        this.phone_number = phone_number
-    }
 
     /**
      * This method adds a campsite to this owner's list when they register a new campsite.

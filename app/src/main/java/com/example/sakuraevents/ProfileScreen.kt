@@ -47,13 +47,13 @@ fun profileScreen(navController: NavController){
             CenterAlignedTopAppBar(
                 title = { Text("Profile") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = light_yellow
+                    containerColor = COLOURS.LIGHTYELLOW.colour
                 )
             )
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = green
+                containerColor = COLOURS.GREEN.colour
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -64,7 +64,7 @@ fun profileScreen(navController: NavController){
                             imageVector = Icons.Default.Home,
                             contentDescription = "Home",
                             modifier = Modifier.size(40.dp),
-                            tint = if (current_icon == "Home") dark_green else black
+                            tint = if (current_icon == "Home") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
                         )
                     }
                     IconButton(onClick = { navController.navigate("Search") }) {
@@ -72,7 +72,7 @@ fun profileScreen(navController: NavController){
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
                             modifier = Modifier.size(40.dp),
-                            tint = if (current_icon == "Search") dark_green else black
+                            tint = if (current_icon == "Search") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
                         )
                     }
                     IconButton(onClick = { navController.navigate("Profile") }) {
@@ -80,7 +80,7 @@ fun profileScreen(navController: NavController){
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profile",
                             modifier = Modifier.size(40.dp),
-                            tint = if (current_icon == "Profile") dark_green else black
+                            tint = if (current_icon == "Profile") COLOURS.DARKGREEN.colour else COLOURS.BLACK.colour
                         )
                     }
                 }

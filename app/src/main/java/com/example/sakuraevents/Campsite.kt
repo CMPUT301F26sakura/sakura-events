@@ -2,27 +2,48 @@ package com.example.sakuraevents
 
 class Campsite(
     val UID: String = "",
-    private var name: String = "",
-    private var location: String = "",
-    private var description: String = "",
-    private var max_occupancy: Int = 1,
+    private var name: String,
+    private var location: String,
+    private var description: String,
+    private var max_occupancy: Int,
     private var qr_code: String = "",
-    private var price: Float = 0.0f,
+    private var price: Float,
     private var _tags: MutableList<String> = mutableListOf(),
     private var _booking_period_dates: MutableList<String> = mutableListOf(),
     private var _reservations: MutableList<Reservation> = mutableListOf(),
     private var _ratings: MutableList<Pair<Entrant, Float>> = mutableListOf(),
-    private var average_rating: Float = 0.0f
+    private var average_rating: Float = 0.0f,
+    private var _waiting_list: MutableList<Entrant> = mutableListOf(),
+    private var waitlist_capacity: Int = 0 // 0 here indicates there is no limit.
 ) {
 
     val tags: List<String> get() = _tags
     val booking_period_dates: List<String> get() = _booking_period_dates
     val reservations: List<Reservation> get() = _reservations
     val ratings: List<Pair<Entrant, Float>> get() = _ratings
+    val waiting_list: List<Entrant> get() = _waiting_list
 
     fun setName(name: String){ // Set the name of the campsite
         this.name = name // Keyword "this" refers to the specific object instance in the code
         // Basically "this" keyword points to the current instance of that class
+    }
+    fun getWaitlistCapacity(): Int {
+        return waitlist_capacity
+    }
+    fun setWaitlistCapacity(new_capacity: Int): Boolean {
+        if (new_capacity >= 0)
+            waitlist_capacity = new_capacity
+            return true
+        return false
+    }
+    fun addToWaitingList(entrant: Entrant): Boolean {
+        if ((waitlist_capacity == 0 || _waiting_list.count() < waitlist_capacity) && !_waiting_list.any { it === entrant })
+            _waiting_list.add(entrant)
+            return true
+        return false
+    }
+    fun removeFromWaitingList(entrant: Entrant) {
+        _waiting_list.removeIf { it === entrant }
     }
     fun getName(): String { // Returns campsite name
         return this.name
@@ -104,5 +125,13 @@ class Campsite(
             }
             average_rating = sum / _ratings.size
         }
+    }
+
+    /**
+     * In order to safely delete this campsite we need to remove every reservation that refers to it.
+     * Under normal circumstances this should only be invoked by the firestoreDriver.
+     */
+    fun clearReservations() {
+        _reservations.forEach { it.deleteReservation() }
     }
 }

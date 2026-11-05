@@ -1,7 +1,12 @@
 package com.example.sakuraevents
 
+import kotlin.collections.mutableListOf
 
-
+enum class Role {
+    ENTRANT,
+    OWNER,
+    ADMIN,
+}
 
 /**
  * Represents an entrant in the Sakura Events app.
@@ -16,46 +21,54 @@ package com.example.sakuraevents
  * @property phoneNumber  the phone number of the entrant.
  */
 
-class Entrant (
-    private val uid: String,
-    private val name: String,
-    private val  email: String,
-    private val  phoneNumber: String,
-    private val _reservations: MutableList<Reservation> = mutableListOf(),
-    private val _notifications: MutableList<Notification> = mutableListOf()
-) : User(uid, name, email, phoneNumber){
-    // Store the entrant reservations.
-    val reservations get() = _reservations.toList()
-    val notifications get() = _notifications.toList()
-    //TODO: Enable when the team message class is ready
-    //val messages = mutableListOf<Message>()
+open class Entrant (val UID: String= "",
+                    private val role: Role,
+                    private var name: String,
+                    private var email: String,
+                    private var phone_number: String,
+                    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+                    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
 
-    /**
-     * Add the reservation to the entrant list
-     */
-    fun addReservation(reservation: Reservation ){
-        _reservations.add(reservation)
-        // TODO : connect to reservation class when ready
+    val reservations: List<Reservation> get() = _reservations
+    val notifications: List<Notification> get() = _notifications
+
+    fun addReservation(reservation: Reservation) { // Add a Reservation object to campsite reservation list
+        if (!_reservations.any { it === reservation }) {
+            _reservations.add(reservation)
+        }
+    }
+    fun removeReservation(reservation: Reservation) { // Remove a reservation object from campsite reserv. list
+        _reservations.removeIf { it === reservation }
+    }
+    fun clearReservations() {
+        _reservations.forEach { it.deleteReservation() }
     }
 
-    /**
-     * Remove a reservation from the entrant list
-     * Checks that it is the exact same reservation object.
-     * @return reservation the reservation to remove
-     */
-    fun removeReservation(reservation: Reservation) {
-        _reservations.removeIf{it === reservation}
+    fun getRole(): String {
+        return role.toString()
     }
-    /**
-     * Adds a notification to the entrant's notification list.
-     *
-     * @param notification the notification to add
-     */
+    fun getName(): String {
+        return name
+    }
+    fun getPhoneNumber(): String {
+        return phone_number
+    }
+    fun getEmail(): String {
+        return email
+    }
 
+    fun setName(newName: String) {
+        name = newName
+    }
+    fun setEmail(newEmail: String) {
+        email = newEmail
+    }
+    fun setPhoneNumber(newPhoneNumber: String) {
+        phone_number = newPhoneNumber
+    }
     fun addNotification(notification: Notification) {
-        _notifications.add(notification)
+        if (_notifications.any { it === notification })
+            _notifications.add(notification)
     }
-
 
 }
-
