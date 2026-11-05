@@ -24,7 +24,7 @@ class Lottery(private var capacity: Int = 0,
      * @return A list of Entrants that have won the lottery.
      */
 
-    private var winners_list: MutableList<Entrants> = mutableListOf<Entrants>()
+    private var winners_list: MutableList<Entrant> = mutableListOf<Entrant>()
     private var _campsites_list: MutableList<Campsite> = mutableListOf<Campsite>()
 
     val campsites_list: List<Campsite> get() = _campsites_list
@@ -51,6 +51,6 @@ class Lottery(private var capacity: Int = 0,
         end_time = new_end_time
     }
 
-    fun getWinnerList(winners_list: MutableList<Entrants>) {}
+    fun getWinnerList(winners_list: MutableList<Entrant>) {}
 
 }
