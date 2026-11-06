@@ -113,7 +113,22 @@ fun profileScreen(navController: NavController){
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "Main Screen Content")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Incoming Owner Button
+                Button(onClick = { navController.navigate("OwnerCampsites") }) {
+                    Text("My Campsites")
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Your Admin Button
+                Button(
+                    onClick = { navController.navigate("AdminDashboard") },
+                    colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
+                ) {
+                    Text("Admin Dashboard")
+                }
+            }
         }
     }
 }

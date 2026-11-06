@@ -35,6 +35,29 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     NavHost(navController = navController, startDestination = "Home"){
         composable("Home") { homeScreen(navController, firestoreDriver, modifier) }
         composable("Search") { searchScreen.searchScreen() }
-        composable("Profile") { profileScreen(navController) }
+        
+        // Keep your updated Profile route
+        composable("Profile") { profileScreen(navController, firestoreDriver) }
+        
+        // Keep your Admin route
+        composable("AdminDashboard") { 
+            AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { navController.popBackStack() }) 
+        }
+
+        // Restore the incoming Owner routes
+        composable("OwnerCampsites") { ownerCampsiteListScreen(navController, firestoreDriver) }
+        composable("CampsiteDetails/{uid}") { entry ->
+            campsiteDetailsScreen(
+                navController,
+                firestoreDriver,
+                entry.arguments?.getString("uid") ?: ""
+            )
+        }
+        composable(
+            "CampsiteForm?uid={uid}",
+            arguments = listOf(navArgument("uid") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { entry ->
+            campsiteFormScreen(navController, firestoreDriver, entry.arguments?.getString("uid"))
+        }
     }
 }
