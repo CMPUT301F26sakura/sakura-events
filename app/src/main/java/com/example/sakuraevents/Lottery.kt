@@ -113,13 +113,11 @@ class Lottery(
     // "Can you tell me the logic / boilerplate behind drawWinners() from List<Entrant> please?" 2026-Nov-05
     fun drawWinners(): List<Entrant> {
         winners_list.clear()
-
         // 1. Create a master pool by combining the waiting_list from ALL member campsites.
         // .distinct() ensures an entrant isn't drawn twice if they joined multiple member campsites.
         val pooledWaitlist = _campsites_list.flatMap { it.waiting_list }.distinct()
         // BASICALLY flatMap iterates through the array of member campsites, extracts the waiting_list
         // from each, and flattens them into one master list.
-
         // If no one is in the pool, or capacity is 0, return empty
         if (pooledWaitlist.isEmpty() || capacity <= 0) return winners_list
         // 2. Shuffle the pooled waitlist and pick winners up to the capacity limit
@@ -127,20 +125,37 @@ class Lottery(
         val selectedCount = minOf(capacity, shuffled.size)
         winners_list.addAll(shuffled.take(selectedCount))
         // 3. Send out notifications to everyone in the pool
+
         val campsiteNames = _campsites_list.joinToString(", ") { it.getName() }.ifBlank { "Campsite Lottery" }
+
         for (entrant in pooledWaitlist) {
             val won = winners_list.contains(entrant)
-            val notification = Notification(
-                UID = "notif_${System.currentTimeMillis()}_${entrant.UID}",
-                title = if (won) "Lottery Winner!" else "Lottery Result",
-                message = if (won) {
-                    "Congratulations! You won the lottery for $campsiteNames. Please select your dates to reserve."
-                } else {
-                    "Unfortunately, you were not selected in the lottery for $campsiteNames."
-                },
-                recipient_uid = entrant.UID
-            )
-            entrant.addNotification(notification)
+
+            // Only create a notification if we actually have a campsite
+            if (_campsites_list.isNotEmpty()) {
+                // Create a dummy sender (CampsiteOwner) since Notification requires one.
+                // Must satisfy the Entrant parameters (email, phone_number, role) it inherits.
+                val dummySender = CampsiteOwner(
+                    name = "System Lottery",
+                    email = "lottery@system.com",
+                    phone_number = "000-000-0000",
+                    role = Role.ADMIN // enum is named 'Role' and has 'ADMIN'
+                )
+
+                val notification = Notification(
+                    UID = "",
+                    title = if (won) "Lottery Winner!" else "Lottery Result",
+                    message = if (won) {
+                        "Congratulations! You won the lottery for $campsiteNames. Please select your dates to reserve."
+                    } else {
+                        "Unfortunately, you were not selected in the lottery for $campsiteNames."
+                    },
+                    _recipients = mutableListOf(entrant),
+                    campsite = _campsites_list.first(), // Pass the actual first campsite object
+                    sender = dummySender // Pass the dummy owner object
+                )
+                entrant.addNotification(notification)
+            }
         }
 
         return winners_list.toList()
