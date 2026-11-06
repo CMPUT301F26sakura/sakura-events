@@ -14,13 +14,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 /**
- * Shows a campsite's name, location, description and amenities, max occupancy, price, and tags.
- * The "Edit" button opens the campsite form filled in with these values.
+ * The campsite details page used by the app. Looks the campsite up in FirestoreDriver and
+ * opens the edit form when "Edit" is tapped.
  *
  * @param nav_controller the app's NavController, used to move between pages.
  * @param firestore_driver the app's FirestoreDriver, which holds the loaded campsites.
@@ -28,10 +29,25 @@ import androidx.navigation.NavController
  */
 @Composable
 fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String) {
-    val campsite = firestore_driver.campsites[campsite_uid]
+    campsiteDetailsContent(
+        campsite = firestore_driver.campsites[campsite_uid],
+        on_back = { nav_controller.popBackStack() },
+        on_edit = { nav_controller.navigate("CampsiteForm?uid=$campsite_uid") }
+    )
+}
 
+/**
+ * Draws a campsite's name, location, description and amenities, max occupancy, price, and tags,
+ * with an "Edit" button. It does not load anything itself, so tests can use it with fake data.
+ *
+ * @param campsite the Campsite to show, or null if it was not found.
+ * @param on_back what to do when the back arrow is tapped.
+ * @param on_edit what to do when "Edit" is tapped.
+ */
+@Composable
+fun campsiteDetailsContent(campsite: Campsite?, on_back: () -> Unit, on_edit: () -> Unit) {
     Scaffold(
-        topBar = { ownerTopBar("Campsite Details", nav_controller) },
+        topBar = { ownerTopBar("Campsite Details", on_back) },
         containerColor = COLOURS.LIGHTYELLOW.colour
     ) { inner_padding ->
         Column(
@@ -54,7 +70,7 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
             detailRow("Price per night", "$%.2f".format(campsite.getPrice()))
             detailRow("Tags", if (campsite.tags.isEmpty()) "None" else campsite.tags.joinToString(", "))
 
-            Button(onClick = { nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") }) {
+            Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
                 Text("Edit")
             }
         }

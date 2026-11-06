@@ -27,6 +27,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -37,18 +38,18 @@ const val TEST_OWNER_UID = "0"
 
 /**
  * The top bar used by the owner campsite screens: a title in the middle and a back arrow
- * on the left that returns to the previous page.
+ * on the left.
  *
  * @param title the text shown in the middle of the bar.
- * @param nav_controller the app's NavController, used to go back.
+ * @param on_back what to do when the back arrow is tapped.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ownerTopBar(title: String, nav_controller: NavController) {
+fun ownerTopBar(title: String, on_back: () -> Unit) {
     CenterAlignedTopAppBar(
         title = { Text(title) },
         navigationIcon = {
-            IconButton(onClick = { nav_controller.popBackStack() }) {
+            IconButton(onClick = on_back) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
@@ -63,10 +64,8 @@ fun ownerTopBar(title: String, nav_controller: NavController) {
 }
 
 /**
- * Shows every campsite the current owner has registered. Tapping a campsite opens its
- * details, and the "Register campsite" button opens an empty campsite form.
- *
- * If the test owner does not exist in Firestore yet, debug builds show a button that creates it.
+ * The "My Campsites" page used by the app. Looks up the current owner and their campsites in
+ * FirestoreDriver. If the test owner does not exist yet, debug builds show a button that creates it.
  *
  * @param nav_controller the app's NavController, used to move between pages.
  * @param firestore_driver the app's FirestoreDriver, which holds the loaded owners and campsites.
@@ -76,9 +75,54 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
     val owner = firestore_driver.owners[TEST_OWNER_UID]
     // True for builds run from Android Studio, false for release builds.
     val is_debug_build = (LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    // Look each campsite up by UID so the list always shows the latest loaded values.
+    val owned_campsites = owner?.owned_campsites?.mapNotNull { firestore_driver.campsites[it.UID] } ?: emptyList()
 
+    ownerCampsiteListContent(
+        owner_found = owner != null,
+        campsites = owned_campsites,
+        show_debug_button = is_debug_build,
+        on_back = { nav_controller.popBackStack() },
+        on_create_test_owner = {
+            firestore_driver.updateOwner(
+                CampsiteOwner(
+                    UID = TEST_OWNER_UID,
+                    role = Role.OWNER,
+                    name = "Test Owner",
+                    email = "test.owner@example.com",
+                    phone_number = "780-555-0000"
+                )
+            )
+        },
+        on_register = { nav_controller.navigate("CampsiteForm") },
+        on_campsite_click = { campsite -> nav_controller.navigate("CampsiteDetails/${campsite.UID}") }
+    )
+}
+
+/**
+ * Draws the owner's campsite list with a "Register campsite" button. It does not load anything
+ * itself, so tests can use it with fake data.
+ *
+ * @param owner_found false if the current owner could not be found.
+ * @param campsites the owner's campsites to list.
+ * @param show_debug_button true to offer the "Create test owner" button when the owner is missing.
+ * @param on_back what to do when the back arrow is tapped.
+ * @param on_create_test_owner what to do when "Create test owner" is tapped.
+ * @param on_register what to do when "Register campsite" is tapped.
+ * @param on_campsite_click what to do when a campsite in the list is tapped.
+ */
+@Composable
+fun ownerCampsiteListContent(
+    owner_found: Boolean,
+    campsites: List<Campsite>,
+    show_debug_button: Boolean,
+    on_back: () -> Unit,
+    on_create_test_owner: () -> Unit,
+    on_register: () -> Unit,
+    on_campsite_click: (Campsite) -> Unit
+) {
     Scaffold(
-        topBar = { ownerTopBar("My Campsites", nav_controller) },
+        topBar = { ownerTopBar("My Campsites", on_back) },
         containerColor = COLOURS.LIGHTYELLOW.colour
     ) { inner_padding ->
         Column(
@@ -88,41 +132,26 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (owner == null) {
+            if (!owner_found) {
                 Text("Owner \"$TEST_OWNER_UID\" was not found.")
-                if (is_debug_build) {
-                    Button(onClick = {
-                        firestore_driver.updateOwner(
-                            CampsiteOwner(
-                                UID = TEST_OWNER_UID,
-                                role = Role.OWNER,
-                                name = "Test Owner",
-                                email = "test.owner@example.com",
-                                phone_number = "780-555-0000"
-                            )
-                        )
-                    }) {
+                if (show_debug_button) {
+                    Button(onClick = on_create_test_owner) {
                         Text("Create test owner (debug)")
                     }
                 }
                 return@Column
             }
 
-            Button(onClick = { nav_controller.navigate("CampsiteForm") }) {
+            Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
                 Text("Register campsite")
             }
 
-            // Look each campsite up by UID so the list always shows the latest loaded values.
-            val owned_campsites = owner.owned_campsites.mapNotNull { firestore_driver.campsites[it.UID] }
-
-            if (owned_campsites.isEmpty()) {
+            if (campsites.isEmpty()) {
                 Text("You have no campsites yet.")
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(owned_campsites, key = { it.UID }) { campsite ->
-                        campsiteListItem(campsite) {
-                            nav_controller.navigate("CampsiteDetails/${campsite.UID}")
-                        }
+                    items(campsites, key = { it.UID }) { campsite ->
+                        campsiteListItem(campsite) { on_campsite_click(campsite) }
                     }
                 }
             }
@@ -141,6 +170,7 @@ fun campsiteListItem(campsite: Campsite, on_click: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("campsiteRow_${campsite.UID}")
             .clickable(onClick = on_click),
         colors = CardDefaults.cardColors(containerColor = COLOURS.DARKYELLOW.colour)
     ) {
