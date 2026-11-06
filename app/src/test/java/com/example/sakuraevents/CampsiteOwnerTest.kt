@@ -1,5 +1,6 @@
 // Purpose: Unit tests for the CampsiteOwner model class, checking its constructor,
 // getters, setters, and owned campsite list behaviour.
+// Written with help from Anthropic, Claude (Claude Code), "Write unit tests for CampsiteOwner", 2026-11-04
 
 package com.example.sakuraevents
 

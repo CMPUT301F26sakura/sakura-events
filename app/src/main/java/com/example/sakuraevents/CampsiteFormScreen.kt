@@ -1,5 +1,6 @@
 // Purpose: A form for registering a new campsite (US 02.01.01, US 02.01.02) or editing an
 // existing one (US 02.01.03), plus the checks and model updates the form uses.
+// Written with help from Anthropic, Claude (Claude Code), "Build owner campsite screens for US 02.01.01-02.01.04 and US 02.03.01", 2026-11-05
 
 package com.example.sakuraevents
 

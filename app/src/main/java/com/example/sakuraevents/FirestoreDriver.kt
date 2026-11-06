@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateMapOf
 class FirestoreDriver {
 
     private val _reservations = mutableMapOf<String, Reservation>()
+    // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
     private val _campsites = mutableStateMapOf<String, Campsite>()
     private val _entrants = mutableMapOf<String, Entrant>()
@@ -106,6 +107,7 @@ class FirestoreDriver {
                         name = owner["name"] as String,
                         email = owner["email"] as String,
                         phone_number = owner["phone_number"] as String,
+                        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
                         // mapNotNull skips campsites that have not loaded yet instead of crashing.
                         _owned_campsites = (owner["owned_campsites"] as List<*>).mapNotNull { uid -> _campsites[uid as String] }.toMutableList()
                     )
@@ -213,6 +215,7 @@ class FirestoreDriver {
         return reservations_ref.document(reservation.UID).delete()
     }
 
+    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     /**
      * Picks the UID that the next new campsite should use: one more than the largest
      * campsite UID currently loaded, or "0" if there are none.
@@ -231,6 +234,7 @@ class FirestoreDriver {
 
     fun addCampsite(campsite: Campsite): Task<Void> {
 
+        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
         // Use the campsite's own UID if it already has one, otherwise pick the next free UID.
         val UID: String = if (campsite.UID.isNotBlank()) campsite.UID else nextCampsiteUid()
         val firestore_format = mapOf<String, Any>(
@@ -249,6 +253,7 @@ class FirestoreDriver {
         return campsites_ref.document(UID).set(firestore_format)
     }
 
+    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     /**
      * Saves changes to a campsite that already exists in Firestore, replacing its stored
      * document with the campsite's current values. The campsite keeps its UID.
@@ -316,6 +321,7 @@ class FirestoreDriver {
         return owners_ref.document(UID).set(firestore_format)
     }
 
+    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     /**
      * Saves an owner under their existing UID, replacing the stored document with the
      * owner's current values (including their owned campsites, saved as UIDs).

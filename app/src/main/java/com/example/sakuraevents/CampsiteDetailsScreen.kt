@@ -1,5 +1,6 @@
 // Purpose: Shows the full details of one of the owner's campsites (US 02.01.04), with a
 // button to edit them.
+// Written with help from Anthropic, Claude (Claude Code), "Build owner campsite screens for US 02.01.01-02.01.04 and US 02.03.01", 2026-11-05
 
 package com.example.sakuraevents
 

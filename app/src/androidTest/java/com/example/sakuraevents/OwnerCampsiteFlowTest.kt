@@ -19,6 +19,7 @@
  * Outstanding Issues:
  * - Saving to Firestore and the real page navigation are not covered here.
  */
+// Written with help from Anthropic, Claude (Claude Code), "Write intent tests for the owner campsite screens", 2026-11-05
 
 package com.example.sakuraevents
 

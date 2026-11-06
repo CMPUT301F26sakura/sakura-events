@@ -39,6 +39,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         composable("Search") { searchScreen.searchScreen() }
         composable("Profile") { profileScreen(navController) }
 
+        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
         // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
         composable("OwnerCampsites") { ownerCampsiteListScreen(navController, firestoreDriver) }
         composable("CampsiteDetails/{uid}") { entry ->

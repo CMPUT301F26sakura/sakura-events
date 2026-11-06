@@ -1,5 +1,6 @@
 // Purpose: Shows the current campsite owner's list of campsites (US 02.03.01) and lets them
 // start registering a new one. Also holds the shared top bar used by the owner campsite screens.
+// Written with help from Anthropic, Claude (Claude Code), "Build owner campsite screens for US 02.01.01-02.01.04 and US 02.03.01", 2026-11-05
 
 package com.example.sakuraevents
 

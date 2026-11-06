@@ -1,4 +1,5 @@
 // Purpose: Unit tests for validateCampsiteForm, the checks used by the campsite form.
+// Written with help from Anthropic, Claude (Claude Code), "Write unit tests for the campsite form validation", 2026-11-05
 
 package com.example.sakuraevents
 
