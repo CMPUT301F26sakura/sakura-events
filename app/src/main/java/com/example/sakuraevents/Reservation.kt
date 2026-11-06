@@ -1,3 +1,13 @@
+/**
+ * File: Reservation.kt
+ * Purpose: Model class representing an entrant's campsite reservation for a specific date range
+ * and guest count.
+ *
+ * User Stories Addressed:
+ * - US 01.04.01, US 01.05.01, US 01.06.01, US 01.07.01 (Reservation lifecycle and cleanup when
+ * campsites/profiles are removed in US 03.01.01 & US 03.02.01).
+ */
+
 package com.example.sakuraevents
 
 enum class ReservationState {
