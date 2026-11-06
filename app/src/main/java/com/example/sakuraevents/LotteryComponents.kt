@@ -1,3 +1,15 @@
+/**
+ * Purpose: 
+ * Contains reusable UI components for the Lottery management system. This file currently 
+ * houses the UI for setting the number of lottery winners.
+ * 
+ * User Stories Addressed:
+ * - US 02.04.05: As a campsite owner, I want to set the number of lottery winners.
+ * 
+ * Outstanding Issues:
+ * - None.
+ */
+
 package com.example.sakuraevents
 
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-
 
 /**
  * Campsite's owner can set the winner count for the lottery
