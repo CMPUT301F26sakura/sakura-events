@@ -25,11 +25,18 @@ import kotlinx.coroutines.flow.callbackFlow
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Test class for validating the behavior of the [LotteryCapacityField] UI component.
+ */
 class LotteryCapacityTest{
 
     @get:Rule
     val capacityTestRule = createComposeRule()
 
+    /**
+     * Test: Valid Input Handling.
+     * Verifies that when a user enters a valid integer (e.g., "100") and clicks confirm...
+     */
     @Test
     fun lotteryCapacity_validInput_updateTest(){
         var callback = false
@@ -57,9 +64,10 @@ class LotteryCapacityTest{
         //check no error message printed
         capacityTestRule.onNodeWithTag("settting_winner_count_error").assertDoesNotExist()
     }
-
-
-
+    /**
+     * Test: Invalid Input Handling.
+     * Verifies that when a user enters an invalid string (e.g., "abcd") and clicks confirm:
+     */
     @Test
     fun lotteryCapacity_showErrorMessage(){
         var callback = false
