@@ -141,7 +141,7 @@ class SearchScreen(val nav_controller: NavController, val firestore_driver: Fire
                     }
                     Button(
                         onClick = {}, modifier
-                            .testTag(("GuestsFilter")),
+                            .testTag(("OccupancyFilter")),
                         colors = ButtonColors(
                             containerColor = COLOURS.DARKGREEN.colour,
                             contentColor = COLOURS.WHITE.colour,
@@ -150,7 +150,7 @@ class SearchScreen(val nav_controller: NavController, val firestore_driver: Fire
                         )
                     ) {
                         Text(
-                            text = "Guests",
+                            text = "Occupancy",
                             fontSize = 20.sp,
                             color = COLOURS.WHITE.colour
                         )
