@@ -42,18 +42,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun profileScreen(navController: NavController){
+fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver){
 
     /**
      * display the select icon with different color to distinguish
      * one variable to track the current route
      */
 
-    val nav_current_route by navController.currentBackStackEntryAsState()
+    val nav_current_route by nav_controller.currentBackStackEntryAsState()
     val current_icon = nav_current_route?.destination?.route
 
 
@@ -74,7 +79,7 @@ fun profileScreen(navController: NavController){
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    IconButton(onClick = { navController.navigate("Home") }) {
+                    IconButton(onClick = { nav_controller.navigate("Home") }) {
                         Icon(
                             imageVector = Icons.Default.Home,
                             contentDescription = "Home",
@@ -82,7 +87,7 @@ fun profileScreen(navController: NavController){
                             tint = COLOURS.BLACK.colour
                         )
                     }
-                    IconButton(onClick = { navController.navigate("Search") }) {
+                    IconButton(onClick = { nav_controller.navigate("Search") }) {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
@@ -90,7 +95,7 @@ fun profileScreen(navController: NavController){
                             tint = COLOURS.BLACK.colour
                         )
                     }
-                    IconButton(onClick = { navController.navigate("Profile") }) {
+                    IconButton(onClick = { nav_controller.navigate("Profile") }) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profile",
@@ -115,7 +120,7 @@ fun profileScreen(navController: NavController){
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // Incoming Owner Button
-                Button(onClick = { navController.navigate("OwnerCampsites") }) {
+                Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
                     Text("My Campsites")
                 }
                 
@@ -123,7 +128,7 @@ fun profileScreen(navController: NavController){
 
                 // Your Admin Button
                 Button(
-                    onClick = { navController.navigate("AdminDashboard") },
+                    onClick = { nav_controller.navigate("AdminDashboard") },
                     colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
                 ) {
                     Text("Admin Dashboard")

@@ -15,9 +15,11 @@ package com.example.sakuraevents
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 enum class COLOURS(val colour: Color){
     LIGHTYELLOW(Color(0xFFEEEEB3)),
@@ -29,26 +31,26 @@ enum class COLOURS(val colour: Color){
 }
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
-    val searchScreen = SearchScreen(navController, firestoreDriver, modifier)
+    val nav_controller = rememberNavController()
+    val search_screen = SearchScreen(nav_controller, firestoreDriver, modifier)
 
-    NavHost(navController = navController, startDestination = "Home"){
-        composable("Home") { homeScreen(navController, firestoreDriver, modifier) }
-        composable("Search") { searchScreen.searchScreen() }
+    NavHost(navController = nav_controller, startDestination = "Home"){
+        composable("Home") { homeScreen(nav_controller, firestoreDriver, modifier) }
+        composable("Search") { search_screen.searchScreen() }
         
         // Keep your updated Profile route
-        composable("Profile") { profileScreen(navController, firestoreDriver) }
+        composable("Profile") { profileScreen(nav_controller, firestoreDriver) }
         
         // Keep your Admin route
         composable("AdminDashboard") { 
-            AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { navController.popBackStack() }) 
+            AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
         }
 
         // Restore the incoming Owner routes
-        composable("OwnerCampsites") { ownerCampsiteListScreen(navController, firestoreDriver) }
+        composable("OwnerCampsites") { ownerCampsiteListScreen(nav_controller, firestoreDriver) }
         composable("CampsiteDetails/{uid}") { entry ->
             campsiteDetailsScreen(
-                navController,
+                nav_controller,
                 firestoreDriver,
                 entry.arguments?.getString("uid") ?: ""
             )
@@ -57,7 +59,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             "CampsiteForm?uid={uid}",
             arguments = listOf(navArgument("uid") { type = NavType.StringType; nullable = true; defaultValue = null })
         ) { entry ->
-            campsiteFormScreen(navController, firestoreDriver, entry.arguments?.getString("uid"))
+            campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
         }
     }
 }
