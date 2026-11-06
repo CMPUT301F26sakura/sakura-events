@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -47,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+
 
 
 class SearchScreen(val navController: NavController, val firestoreDriver: FirestoreDriver, val modifier: Modifier = Modifier) {
@@ -117,7 +120,7 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
 
             Column (modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
             ) {
                 Row (
                     modifier = Modifier.fillMaxWidth(),
@@ -136,23 +139,62 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                             .testTag("searchBarInput")
                             .clip(RoundedCornerShape(10.dp))
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    /*Button(
-                        onClick = {
-                            if (search_bar.isNotBlank()) {
-                                races.add(location)
-                                location = ""
-                            }
-                        },
-                        modifier = Modifier.testTag("addRaceButton") // for testing
-                    ) {
-                        Text("Add")
-                    }*/
-
                 }
-                LazyColumn {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly) {
+                    Button(onClick = {}, modifier
+                        .testTag(("LocatiomFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        )) {
+                        Text(text = "Location",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour)
+                    }
+                    Button(onClick = {}, modifier
+                        .testTag(("DateFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        )) {
+                        Text(text = "Date",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour)
+                    }
+                    Button(onClick = {}, modifier
+                        .testTag(("GuestsFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        )) {
+                        Text(text = "Guests",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour)
+                    }
+                }
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center) {
+                    Button(onClick = {}, modifier
+                        .testTag(("ClearFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        ), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)) {
+                        Text(text = "Clear Filters",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour)
+                    }
+                }
+                LazyColumn (modifier = Modifier.weight(1f)) {
                     items(firestoreDriver.campsites.entries.toList(), key = { it.key }) { campsite ->
                         Spacer(modifier = Modifier.height(12.dp))
                         displayCampsites(campsite.value, search_bar)
