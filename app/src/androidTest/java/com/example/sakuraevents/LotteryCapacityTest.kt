@@ -1,3 +1,15 @@
+/**
+ * Purpose: UI tests for the [LotteryCapacityField] component to verify valid and invalid input handling.
+ * 
+ * Target Class: LotteryComponents.kt (LotteryCapacityField)
+ * 
+ * User Stories Tested:
+ * - US 02.04.05: As a campsite owner, I want to set the number of lottery winners.
+ * 
+ * Outstanding Issues:
+ * - None.
+ */
+
 package com.example.sakuraevents
 
 import androidx.compose.ui.test.assertIsDisplayed
