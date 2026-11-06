@@ -64,7 +64,7 @@ fun profileScreen(nav_controller: NavController){
             contentAlignment = Alignment.Center
         ) {
             // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
-            Button(onClick = { navController.navigate("OwnerCampsites") }) {
+            Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
                 Text("My Campsites")
             }
         }

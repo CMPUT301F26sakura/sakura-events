@@ -54,26 +54,33 @@ enum class COLOURS(val colour: Color){
 
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
-    val nav_contoller = rememberNavController()
-    val searchScreen = SearchScreen(nav_contoller, firestoreDriver, modifier)
+    val nav_controller = rememberNavController()
+    val searchScreen = SearchScreen(nav_controller, firestoreDriver, modifier)
 
-    NavHost(navController = nav_contoller, startDestination = "home"){
-        composable("Home") { homeScreen(nav_contoller, firestoreDriver, modifier) }
+    NavHost(navController = nav_controller, startDestination = "home") {
+        composable("Home") { homeScreen(nav_controller, firestoreDriver, modifier) }
         composable("Search") { searchScreen.searchScreen() }
-        composable("Profile") { profileScreen(navController)
+        composable("Profile") { profileScreen(nav_controller) }
+
 
         // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
         // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
-        composable("OwnerCampsites") { ownerCampsiteListScreen(navController, firestoreDriver) }
+        composable("OwnerCampsites") { ownerCampsiteListScreen(nav_controller, firestoreDriver) }
         composable("CampsiteDetails/{uid}") { entry ->
-            campsiteDetailsScreen(navController, firestoreDriver, entry.arguments?.getString("uid") ?: "")
+            campsiteDetailsScreen(
+                nav_controller,
+                firestoreDriver,
+                entry.arguments?.getString("uid") ?: ""
+            )
         }
         composable(
             "CampsiteForm?uid={uid}",
-            arguments = listOf(navArgument("uid") { type = NavType.StringType; nullable = true; defaultValue = null })
+            arguments = listOf(navArgument("uid") {
+                type = NavType.StringType; nullable = true; defaultValue = null
+            })
         ) { entry ->
-            campsiteFormScreen(navController, firestoreDriver, entry.arguments?.getString("uid"))}
-        composable("Profile") { profileScreen(nav_contoller) }
+            campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
+        }
     }
 }
 
