@@ -1,8 +1,14 @@
 package com.example.sakuraevents
 
-
-// Notification.kt: model class for notifications sent to entrants.
-// Written with help from Anthropic, Claude, "Kotlin Notification model class", 2026-11-04
+/**
+ * File: Notification.kt
+ * Purpose: Model class for notifications sent to entrants (such as lottery win/loss results
+ * and owner updates).
+ *
+ * User Stories Addressed:
+ * - US 01.03.01: As an entrant, I want to receive a notification when I win the campsite lottery.
+ * - US 01.03.02: As an entrant, I want to receive a notification when I lose the campsite lottery.
+ */
 
 /** The kinds of notification the app can send. */
 enum class NotificationType {
@@ -25,7 +31,7 @@ enum class NotificationType {
  * @property campsite the campsite it is about.
  * @property title short title shown to the entrant.
  * @property message full message shown to the entrant.
- * @property recipients the entrants who receive it.
+ * @property _recipients the entrants who receive it.
  * @property date_sent send date ("YYYY-MM-DD"), set by the system.
  */
 class Notification(

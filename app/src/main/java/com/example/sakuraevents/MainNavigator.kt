@@ -1,5 +1,16 @@
-package com.example.sakuraevents
+/**
+ * File: MainNavigator.kt
+ * Purpose: Configures the Jetpack Compose NavHost connecting Home, Search, Profile,
+ * and Admin screens, and defines the shared COLOURS palette.
+ *
+ * User Stories Addressed:
+ * - US 01.01.01 - US 01.02.02 (Search, Filter, Campsite Details, Waiting List)
+ * - US 01.07.03, US 01.09.01 (Profile & Device Identification)
+ * - US 02.01.01 - US 02.05.01 (Campsite Owner Management & Lotteries)
+ * - US 03.01.01 - US 03.11.01 (Admin Dashboard & Moderation)
+ */
 
+package com.example.sakuraevents
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

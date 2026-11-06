@@ -1,3 +1,17 @@
+/**
+ * File: ProfileScreen.kt
+ * Purpose: Displays the user's device-identified profile, allowing them to update
+ * personal contact details, view lottery notifications, switch roles (Entrant, Owner, Admin),
+ * and access the Admin Dashboard.
+ *
+ * User Stories Addressed:
+ * - US 01.03.01: As an entrant, I want to receive a notification when I win the campsite lottery.
+ * - US 01.03.02: As an entrant, I want to receive a notification when I lose the campsite lottery.
+ * - US 01.07.03: As an entrant, I want to update my personal information, such as name, email, and phone number, on my profile.
+ * - US 01.09.01: As an entrant, I want to be identified by my device, so that I do not have to use a username and password.
+ * - US 03.11.01: As an admin, I should be able to be a campsite owner and/or entrant with my admin profile.
+ */
+
 package com.example.sakuraevents
 
 import androidx.compose.foundation.background
