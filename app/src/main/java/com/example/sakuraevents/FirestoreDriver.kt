@@ -22,6 +22,7 @@ import kotlin.to
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.runtime.mutableStateMapOf
 
 
 /**
@@ -31,9 +32,11 @@ import com.google.firebase.auth.FirebaseAuth
 class FirestoreDriver {
 
     private val _reservations = mutableMapOf<String, Reservation>()
-    private val _campsites = mutableMapOf<String, Campsite>()
+    // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+    // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
+    private val _campsites = mutableStateMapOf<String, Campsite>()
     private val _entrants = mutableMapOf<String, Entrant>()
-    private val _owners = mutableMapOf<String, CampsiteOwner>()
+    private val _owners = mutableStateMapOf<String, CampsiteOwner>()
     private val _admins = mutableMapOf<String, Admin>()
     //private val _notifications = mutableMapOf<String, Notification>()
     //private val _lotteries = mutableMapOf<String, Lottery>()
@@ -104,7 +107,9 @@ class FirestoreDriver {
                         name = owner["name"] as String,
                         email = owner["email"] as String,
                         phone_number = owner["phone_number"] as String,
-                        _owned_campsites = (owner["owned_campsites"] as List<*>).map { uid -> _campsites[uid as String] as Campsite }.toMutableList()
+                        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+                        // mapNotNull skips campsites that have not loaded yet instead of crashing.
+                        _owned_campsites = (owner["owned_campsites"] as List<*>).mapNotNull { uid -> _campsites[uid as String] }.toMutableList()
                     )
                 }
             }
@@ -210,15 +215,28 @@ class FirestoreDriver {
         return reservations_ref.document(reservation.UID).delete()
     }
 
+    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+    /**
+     * Picks the UID that the next new campsite should use: one more than the largest
+     * campsite UID currently loaded, or "0" if there are none.
+     *
+     * Call this before creating a new Campsite when you need to know its UID before it is
+     * saved (for example, to add it to an owner's list first).
+     *
+     * @return the next free campsite UID as a String.
+     */
+    fun nextCampsiteUid(): String {
+        if (_campsites.isNotEmpty()) {
+            return ((_campsites.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
+        }
+        return "0"
+    }
+
     fun addCampsite(campsite: Campsite): Task<Void> {
 
-        val UID: String
-        if (_campsites.isNotEmpty()) {
-            UID = ((_campsites.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
-        }
-        else {
-            UID = "0"
-        }
+        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+        // Use the campsite's own UID if it already has one, otherwise pick the next free UID.
+        val UID: String = if (campsite.UID.isNotBlank()) campsite.UID else nextCampsiteUid()
         val firestore_format = mapOf<String, Any>(
             "name" to campsite.getName(),
             "location" to campsite.getLocation(),
@@ -234,6 +252,32 @@ class FirestoreDriver {
             "waitlist_capacity" to campsite.getWaitlistCapacity())
         return campsites_ref.document(UID).set(firestore_format)
     }
+
+    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+    /**
+     * Saves changes to a campsite that already exists in Firestore, replacing its stored
+     * document with the campsite's current values. The campsite keeps its UID.
+     *
+     * @param campsite the edited Campsite. Its UID must not be blank.
+     * @return the Firestore Task for the save.
+     */
+    fun updateCampsite(campsite: Campsite): Task<Void> {
+        val firestore_format = mapOf<String, Any>(
+            "name" to campsite.getName(),
+            "location" to campsite.getLocation(),
+            "description" to campsite.getDescription(),
+            "max_occupancy" to campsite.getMaxOccupancy(),
+            "qr_code" to campsite.getQrCode(),
+            "price" to campsite.getPrice(),
+            "tags" to campsite.tags,
+            "booking_period_dates" to campsite.booking_period_dates,
+            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
+            "average_rating" to campsite.getAvgRating(),
+            "waiting_list" to campsite.waiting_list.map { it.UID },
+            "waitlist_capacity" to campsite.getWaitlistCapacity())
+        return campsites_ref.document(campsite.UID).set(firestore_format)
+    }
+
     fun deleteCampsite(campsite: Campsite): Task<Void> {
         campsite.clearReservations()
         return campsites_ref.document(campsite.UID).delete()
@@ -276,6 +320,26 @@ class FirestoreDriver {
             "owned_campsites" to owner.owned_campsites.map { it.UID })
         return owners_ref.document(UID).set(firestore_format)
     }
+
+    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+    /**
+     * Saves an owner under their existing UID, replacing the stored document with the
+     * owner's current values (including their owned campsites, saved as UIDs).
+     * If no document with that UID exists yet, Firestore creates it.
+     *
+     * @param owner the CampsiteOwner to save. Their UID must not be blank.
+     * @return the Firestore Task for the save.
+     */
+    fun updateOwner(owner: CampsiteOwner): Task<Void> {
+        val firestore_format = mapOf<String, Any>(
+            "role" to owner.getRole(),
+            "name" to owner.getName(),
+            "email" to owner.getEmail(),
+            "phone_number" to owner.getPhoneNumber(),
+            "owned_campsites" to owner.owned_campsites.map { it.UID })
+        return owners_ref.document(owner.UID).set(firestore_format)
+    }
+
     fun deleteOwner(owner: CampsiteOwner): Task<Void> {
         // If we delete an owner should we also remove all of their campsites? Question for later.
         owner.clearReservations()
