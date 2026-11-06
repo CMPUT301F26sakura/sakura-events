@@ -81,5 +81,3 @@ fun homeScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver, 
         }
     }
 }
-
-
