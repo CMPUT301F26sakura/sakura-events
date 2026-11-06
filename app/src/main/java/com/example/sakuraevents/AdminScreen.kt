@@ -8,11 +8,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Displays the admin dashboard.
+ * File: AdminScreen.kt
+ * Purpose: Contains the Compose screens for the admin dashboard
+ * and campsite, profile, and image management.
  *
- * Admins can access campsite, profile, and image management.
- * The other admin pages will be added as they are implemented.
+ * User Stories Addressed:
+ * - US 03.01.01: As an admin, I want to remove campsites.
+ * - US 03.02.01: As an admin, I want to remove profiles.
+ * - US 03.03.01: As an admin, I want to remove images.
+ * - US 03.04.01: As an admin, I want to browse campsites.
+ * - US 03.05.01: As an admin, I want to browse profiles.
+ * - US 03.11.01: As an admin, I want to also be an entrant or campsite owner.
+ *
+ * -image remove is not connected to firebase only in ui and test as this owuld require more complexity to images and firestore driver as that is latter half
  */
+
 @Composable
 fun AdminScreen(
     on_campsites: () -> Unit,

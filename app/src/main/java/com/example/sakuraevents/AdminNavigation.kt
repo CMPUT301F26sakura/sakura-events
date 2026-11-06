@@ -14,14 +14,28 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
+
+
 /**
- * Handles navigation between the admin pages.
+ * File: AdminNavigation.kt
+ * Purpose: Handles navigation between the admin management pages
+ * and allows an admin to switch to entrant or campsite owner mode. the admin later on is assigned a firebase account admin, and would open
+ * up the admin screen, in admin screen dashboard it allows admin to switch to both the user and owner roles and come back,
+ * so a normal user cant get to admin curr, maybe add a button? to show or integrate firebase roles ?
  *
- * Admins can manage campsites, profiles, and images.
- * They can also switch to the entrant or owner interface.
+ * User Stories Addressed:
+ * - US 03.01.01: As an admin, I want to remove campsites.
+ * - US 03.02.01: As an admin, I want to remove profiles.
+ * - US 03.03.01: As an admin, I want to remove images. ( in ui and data test yes actual images no later half)
+ * - US 03.04.01: As an admin, I want to browse campsites.
+ * - US 03.05.01: As an admin, I want to browse profiles.
+ * - US 03.11.01: As an admin, I want to also be an entrant or campsite owner.
  *
- * TODO: Connect admin navigation with the team's main navigation.
+ * TODO: Connect admin navigation to the team's main navigation.
+ * TODO: Replace the temporary owner page with the actual owner interface.
  */
+
+
 @Composable
 fun AdminNavigation (
     campsites: List<Campsite>,

@@ -5,16 +5,17 @@ package com.example.sakuraevents
 import com.google.android.gms.tasks.Task
 
 /**
- * Represents an admin user in the app.
+ * File: Admin.kt
+ * Purpose: Model class representing an admin user who can manage
+ * campsites and user profiles. Admin also inherits entrant and
+ * campsite owner functionality.
  *
- * Admins can view and remove campsites, profiles, and images.
- * They can also use the app as an entrant or campsite owner.
+ * User Stories Addressed:
+ * - US 03.01.01: As an admin, I want to remove campsites.
+ * - US 03.02.01: As an admin, I want to remove profiles.
+ * - US 03.11.01: As an admin, I want to also be an entrant or campsite owner.
  *
  *
- * Reworked the admin code to use the team's shared classes instead of separate
- * admin models. FirestoreDriver will handle loading and saving objects to Firebase, so
- * Admin.kt will only contain admin-related functions. The database methods still need
- *to be connected once the driver is finished.
  */
 class Admin (
     UID: String = "",
