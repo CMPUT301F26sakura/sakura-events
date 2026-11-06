@@ -1,3 +1,13 @@
+/**
+ * Purpose: Provides a calendar view for a campsite owner to select and update the booking period for a campsite.
+ * 
+ * User Stories Addressed:
+ * - US 02.04.04: As a campsite owner, I want to set a booking period.
+ * 
+ * Outstanding Issues:
+ * - None?
+ */
+
 package com.example.sakuraevents
 
 import android.R.attr.text
@@ -27,10 +37,10 @@ import java.util.Locale
  * providing a calendar view to pick the range of time for booking
  * it allows the campsite owner to update the old booking period
  *
- * @param campsite the campsite will be edited if new booking period selected
- * @param onCampsiteChanged called for firestore to update the new booking period
+ * @param campsite The campsite being edited. Its booking dates will be modified.
+ * @param onCampsiteChanged Callback triggered when the user confirms a new date range, so the parent can update Firestore.
+ * @param modifier Compose modifier for styling.
  */
-
 
 @Composable
 fun CampsiteBookingPeriodField(
@@ -42,7 +52,7 @@ fun CampsiteBookingPeriodField(
     val  dateRangePickerState = rememberDateRangePickerState()
 
     //format of the date string
-    val date_format = remember { SimpleDateFormat("yyyy-MM--dd", Locale.getDefault()) }
+    val date_format = remember { SimpleDateFormat("YYYY-MM-DD", Locale.getDefault()) }
 
     Column(modifier = modifier.fillMaxWidth()){
         val dates = campsite.booking_period_dates
