@@ -35,6 +35,13 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     NavHost(navController = navController, startDestination = "home"){
         composable("Home") { homeScreen(navController, firestoreDriver, modifier) }
         composable("Search") { searchScreen.searchScreen() }
-        composable("Profile") { profileScreen(navController) }
+        composable(route = "Profile") { profileScreen(navController, firestoreDriver) }
+        // --- Add Admin Dashboard Route ---
+        composable("AdminDashboard") {
+            AdminNavigation(
+                firestore_driver = firestoreDriver,
+                on_exit_admin = { navController.popBackStack() }
+            )
+        }
     }
 }
