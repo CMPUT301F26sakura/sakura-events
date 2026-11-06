@@ -14,23 +14,13 @@
 
 package com.example.sakuraevents
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,15 +28,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.unit.dp
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,53 +46,15 @@ fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDrive
      * display the select icon with different color to distinguish
      * one variable to track the current route
      */
-
-    val nav_current_route by nav_controller.currentBackStackEntryAsState()
-    val current_icon = nav_current_route?.destination?.route
-
-
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Profile") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = COLOURS.LIGHTYELLOW.colour
-                )
-            )
+            topBar(nav_controller)
         },
         bottomBar = {
             BottomAppBar(
                 containerColor = COLOURS.DARKYELLOW.colour
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    IconButton(onClick = { nav_controller.navigate("Home") }) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Home",
-                            modifier = Modifier.size(40.dp),
-                            tint = COLOURS.BLACK.colour
-                        )
-                    }
-                    IconButton(onClick = { nav_controller.navigate("Search") }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            modifier = Modifier.size(40.dp),
-                            tint = COLOURS.BLACK.colour
-                        )
-                    }
-                    IconButton(onClick = { nav_controller.navigate("Profile") }) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            modifier = Modifier.size(40.dp).background(COLOURS.LIGHTYELLOW.colour),
-                            tint = COLOURS.BLACK.colour
-                        )
-                    }
-                }
+                bottomBar(nav_controller)
             }
 
         },
@@ -118,15 +69,14 @@ fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDrive
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Incoming Owner Button
                 Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
                     Text("My Campsites")
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Your Admin Button
                 Button(
                     onClick = { nav_controller.navigate("AdminDashboard") },
                     colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
