@@ -1,3 +1,19 @@
+/**
+ * File: FirestoreDriver.kt
+ * Purpose: Manages Firebase Firestore persistence, real-time snapshot listeners,
+ * device-based anonymous authentication, and object serialization/deserialization
+ * for campsites, entrants, owners, admins, reservations, lotteries, and notifications.
+ *
+ * User Stories Addressed:
+ * - US 01.01.03, US 01.01.04, US 01.01.05, US 01.01.06: Load and query campsites and details.
+ * - US 01.02.01, US 01.02.02: Persist joining and leaving campsite lottery waiting lists.
+ * - US 01.03.01, US 01.03.02: Persist lottery win and loss notifications.
+ * - US 01.09.01: Identify entrant by device via Firebase Anonymous Authentication / device ID.
+ * - US 02.01.01, US 02.01.02, US 02.01.03, US 02.01.04, US 02.02.01, US 02.03.01: Create, view, and update campsites.
+ * - US 02.04.01, US 02.04.02, US 02.04.03, US 02.04.04, US 02.04.05, US 02.04.06, US 02.04.07, US 02.05.01: Manage lottery listings and draw winners.
+ * - US 03.01.01, US 03.02.01, US 03.03.01, US 03.04.01, US 03.05.01, US 03.11.01: Admin browsing and removal operations.
+ */
+
 package com.example.sakuraevents
 
 import com.google.android.gms.tasks.Task

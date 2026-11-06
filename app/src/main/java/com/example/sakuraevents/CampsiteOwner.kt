@@ -1,6 +1,15 @@
-// Purpose: Defines the CampsiteOwner model, which stores an owner's contact
-// information and the campsites they own.
-
+/**
+ * File: CampsiteOwner.kt
+ * Purpose: Defines the CampsiteOwner model, which stores an owner's contact
+ * information and the campsites they own and manage.
+ *
+ * User Stories Addressed:
+ * - US 02.01.01: As a campsite owner, I want to register my campsite with the app.
+ * - US 02.01.02: As a campsite owner, I want to provide campsite details including name, location, description (amenities), maximum occupancy, map location, optional image, and tags.
+ * - US 02.01.03: As a campsite owner, I want to update details about my campsite.
+ * - US 02.01.04: As a campsite owner, I want to view details of my campsite.
+ * - US 02.03.01: As a campsite owner, I want to view a list of my campsites.
+ */
 package com.example.sakuraevents
 
 /**
