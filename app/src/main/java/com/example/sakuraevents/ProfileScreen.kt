@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -113,7 +114,10 @@ fun profileScreen(navController: NavController){
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "Main Screen Content")
+            // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+            Button(onClick = { navController.navigate("OwnerCampsites") }) {
+                Text("My Campsites")
+            }
         }
     }
 }
