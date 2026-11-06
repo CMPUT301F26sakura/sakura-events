@@ -1,6 +1,7 @@
 package com.example.sakuraevents
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -197,7 +198,8 @@ class SearchScreen(val nav_controller: NavController, val firestore_driver: Fire
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp, vertical = 0.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(COLOURS.GREEN.colour),
+                    .background(COLOURS.GREEN.colour)
+                    .clickable(onClick = {nav_controller.navigate("CampsiteDetailScreen/${campsite.UID}")}),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {

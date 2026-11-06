@@ -83,6 +83,11 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         ) { entry ->
             campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
         }
+        composable(
+            route = "CampsiteDetailScreen/{UID}",
+            arguments = listOf(navArgument("UID") { type = NavType.StringType})) { uid ->
+            val UID = uid.arguments?.getString("UID") as String
+            campsiteDetailsScreen(nav_controller, firestoreDriver, UID) }
     }
 }
 
