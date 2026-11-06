@@ -1,11 +1,9 @@
 package com.example.sakuraevents
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +15,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,76 +34,45 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.mediaQuery
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+/**
+ * US01.01.01
+ */
 
-class SearchScreen(val navController: NavController, val firestoreDriver: FirestoreDriver, val modifier: Modifier = Modifier) {
+class SearchScreen(val nav_controller: NavController, val firestore_driver: FirestoreDriver, val modifier: Modifier = Modifier) {
+
+    private var location_filter by mutableStateOf("")
+    private var search_bar by mutableStateOf("")
+
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun searchScreen(){
+    fun searchScreen() {
 
         /**
          * display the select icon with different color to distinguish
          * one variable to track the current route
          */
-
-        val nav_current_route by navController.currentBackStackEntryAsState()
-        val current_icon = nav_current_route?.destination?.route
-        var search_bar by remember { mutableStateOf("") }
-
-
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("Search") },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = COLOURS.LIGHTYELLOW.colour
-                    )
-                )
+                topBar(nav_controller)
             },
             bottomBar = {
                 BottomAppBar(
                     containerColor = COLOURS.DARKYELLOW.colour
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        IconButton(onClick = { navController.navigate("Home") }) {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = "Home",
-                                modifier = Modifier.size(40.dp),
-                                tint = COLOURS.BLACK.colour
-                            )
-                        }
-                        IconButton(onClick = { navController.navigate("Search") }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                modifier = Modifier.size(40.dp).background(COLOURS.LIGHTYELLOW.colour),
-                                tint = COLOURS.BLACK.colour
-                            )
-                        }
-                        IconButton(onClick = { navController.navigate("Profile") }) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
-                                modifier = Modifier.size(40.dp),
-                                tint = COLOURS.BLACK.colour
-                            )
-                        }
-                    }
+                    bottomBar(nav_controller)
                 }
 
             },
@@ -110,11 +80,12 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
         ) { innerPadding ->
             //put your US stories code under
 
-            Column (modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
-                Row (
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -127,52 +98,151 @@ class SearchScreen(val navController: NavController, val firestoreDriver: Firest
                             Text("Search")
                         },
                         singleLine = true,
-                        modifier = Modifier.testTag("searchBarInput").clip(RoundedCornerShape(10.dp))
+                        modifier = Modifier
+                            .testTag("searchBarInput")
+                            .clip(RoundedCornerShape(10.dp))
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    /*Button(
-                        onClick = {
-                            if (search_bar.isNotBlank()) {
-                                races.add(location)
-                                location = ""
-                            }
-                        },
-                        modifier = Modifier.testTag("addRaceButton") // for testing
-                    ) {
-                        Text("Add")
-                    }*/
-
                 }
-                LazyColumn {
-                    items(firestoreDriver.campsites.entries.toList(), key = { it.key }) { campsite ->
-                        Spacer(modifier = Modifier.height(12.dp))
-                        displayCampsites(campsite.value, search_bar)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        onClick = {}, modifier
+                            .testTag(("LocatiomFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        )
+                    ) {
+                        Text(
+                            text = "Location",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour
+                        )
+                    }
+                    Button(
+                        onClick = {}, modifier
+                            .testTag(("DateFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        )
+                    ) {
+                        Text(
+                            text = "Date",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour
+                        )
+                    }
+                    Button(
+                        onClick = {}, modifier
+                            .testTag(("GuestsFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        )
+                    ) {
+                        Text(
+                            text = "Guests",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour
+                        )
                     }
                 }
-                Text(text = "Main Screen Content")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        onClick = {}, modifier
+                            .testTag(("ClearFilter")),
+                        colors = ButtonColors(
+                            containerColor = COLOURS.DARKGREEN.colour,
+                            contentColor = COLOURS.WHITE.colour,
+                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                            disabledContentColor = COLOURS.DARKGREEN.colour
+                        ), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                    ) {
+                        Text(
+                            text = "Clear Filters",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour
+                        )
+                    }
+                }
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(
+                        firestore_driver.campsites.entries.toList(),
+                        key = { it.key }) { campsite ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        displayCampsites(campsite.value)
+                    }
+                }
             }
         }
     }
 
     @Composable
-    fun displayCampsites(campsite: Campsite, search_bar: String) {
+    fun displayCampsites(campsite: Campsite) {
         if (search_bar == "" || (search_bar.lowercase() in campsite.getName().lowercase())) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = modifier.weight(0.5f)) {
-                    Text(text = campsite.getName(), fontSize = 24.sp)
-                    Text(text = campsite.getLocation(), fontSize = 25.sp)
-                    Text(text = campsite.getMaxOccupancy().toString(), fontSize = 26.sp)
-                    Text(text = campsite.getAvgRating(), fontSize = 27.sp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp, vertical = 0.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(COLOURS.GREEN.colour),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = modifier
+                        .weight(0.5f)
+                        .padding(start = 10.dp)
+                ) {
+                    Text(
+                        text = campsite.getName(),
+                        fontSize = 24.sp,
+                        color = COLOURS.WHITE.colour,
+                        textDecoration = TextDecoration.Underline
+                    )
+                    if (campsite.booking_period_dates.isNotEmpty()) {
+                        Text(
+                            text = "\uD83D\uDCC6 ${campsite.booking_period_dates[0]}",
+                            fontSize = 20.sp,
+                            color = COLOURS.WHITE.colour
+                        )
+                    }
+                    Text(
+                        text = "\uD83C\uDF0E ${campsite.getLocation()}",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
+                    )
+                    Text(
+                        text = "\uD83D\uDC64 ${campsite.getMaxOccupancy()} Occupancy",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
+                    )
+                    Text(
+                        text = "⭐ ${campsite.getAvgRating()}",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
+                    )
                 }
+                Icon(
+                    imageVector = Icons.Default.BrokenImage,
+                    contentDescription = "TempImage",
+                    modifier = Modifier.size(200.dp),
+                    tint = COLOURS.BLACK.colour
+                )
+
             }
-
-            Text(
-                text = campsite.UID,
-                fontSize = 24.sp
-            )
-
         }
     }
 }

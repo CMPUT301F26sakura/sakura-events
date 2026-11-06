@@ -10,6 +10,7 @@
  * - US 02.01.04: As a campsite owner, I want to view details of my campsite.
  * - US 02.03.01: As a campsite owner, I want to view a list of my campsites.
  */
+// Written with help from Anthropic, Claude (Claude Code), "Write the CampsiteOwner model class with KDoc following team rules", 2026-11-04
 package com.example.sakuraevents
 
 /**
