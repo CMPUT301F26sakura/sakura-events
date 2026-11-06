@@ -23,6 +23,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 
+/**
+ * Campsite's owner can set the winner count for the lottery
+ *
+ * @param lottery the lottery will be setted with a new winner count if it is a valid input and confirmatiom
+ * @param onLotteryChanged called to update the firestore after valid input and confirmation
+ */
+
 @Composable
 fun LotteryCapacityField(
     lottery: Lottery,
