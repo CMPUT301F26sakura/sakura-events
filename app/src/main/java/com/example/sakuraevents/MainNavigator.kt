@@ -32,7 +32,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     val navController = rememberNavController()
     val searchScreen = SearchScreen(navController, firestoreDriver, modifier)
 
-    NavHost(navController = navController, startDestination = "home"){
+    NavHost(navController = navController, startDestination = "Home"){
         composable("Home") { homeScreen(navController, firestoreDriver, modifier) }
         composable("Search") { searchScreen.searchScreen() }
         composable("Profile") { profileScreen(navController) }
