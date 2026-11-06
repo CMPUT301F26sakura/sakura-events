@@ -30,11 +30,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.unit.dp
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun profileScreen(nav_controller: NavController){
+fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver){
 
     /**
      * display the select icon with different color to distinguish
@@ -64,8 +70,19 @@ fun profileScreen(nav_controller: NavController){
             contentAlignment = Alignment.Center
         ) {
             // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
-            Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
-                Text("My Campsites")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
+                    Text("My Campsites")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { nav_controller.navigate("AdminDashboard") },
+                    colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
+                ) {
+                    Text("Admin Dashboard")
+                }
             }
         }
     }

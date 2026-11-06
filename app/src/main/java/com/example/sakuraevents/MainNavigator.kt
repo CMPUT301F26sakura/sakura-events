@@ -55,13 +55,15 @@ enum class COLOURS(val colour: Color){
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
     val nav_controller = rememberNavController()
-    val searchScreen = SearchScreen(nav_controller, firestoreDriver, modifier)
+    val search_screen = SearchScreen(nav_controller, firestoreDriver, modifier)
 
-    NavHost(navController = nav_controller, startDestination = "home") {
+    NavHost(navController = nav_controller, startDestination = "Home") {
         composable("Home") { homeScreen(nav_controller, firestoreDriver, modifier) }
-        composable("Search") { searchScreen.searchScreen() }
-        composable("Profile") { profileScreen(nav_controller) }
-
+        composable("Search") { search_screen.searchScreen() }
+        composable("Profile") { profileScreen(nav_controller, firestoreDriver) }
+        composable("AdminDashboard") {
+            AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
+        }
 
         // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
         // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
@@ -129,10 +131,10 @@ fun bottomBar(nav_controller: NavController) {
 /**
  * AI use citation:
  * I David Schumacher used duck.ai to generate part of this code. I asked it:
-    * kotlin compose how to add a back arrow to the top left of a top bar defined using
-    * "Scaffold( topBar = { CenterAlignedTopAppBar ..." I know I can use icons, and even make them
-    * clickable. But I am unsure how exactly otherwise to get multiple elements to show up and have
-    * one of them interactable.
+ * kotlin compose how to add a back arrow to the top left of a top bar defined using
+ * "Scaffold( topBar = { CenterAlignedTopAppBar ..." I know I can use icons, and even make them
+ * clickable. But I am unsure how exactly otherwise to get multiple elements to show up and have
+ * one of them interactable.
  * and it returned that CenterAlignedTopAppBar has a built in feature for this called "navigationIcon".
  * The AI suggested I use Icons.AutoMirrored.Filled.ArrowBack for the icon, which I did.
  * The AI suggested I use nav_controller.popBackStack() which I did.
@@ -149,7 +151,7 @@ fun bottomBar(nav_controller: NavController) {
     CenterAlignedTopAppBar(
         title = { if (current_icon in listOf("Home", "Search", "Profile")) {
             Text(current_icon as String)
-            }
+        }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = COLOURS.LIGHTYELLOW.colour

@@ -31,116 +31,78 @@ import androidx.navigation.compose.rememberNavController
  * - US 03.05.01: As an admin, I want to browse profiles.
  * - US 03.11.01: As an admin, I want to also be an entrant or campsite owner.
  *
- * TODO: Connect admin navigation to the team's main navigation.
- * TODO: Replace the temporary owner page with the actual owner interface.
  */
 
-
 @Composable
-fun AdminNavigation (
-    campsites: List<Campsite>,
-    profiles: List<Entrant>,
-    images: List<String>,
-    on_remove: (Campsite) -> Unit,  //remove campsite
-    on_remove_profile: (Entrant) -> Unit, //remove user
-    on_remove_image: (String) -> Unit, //image remove
-    firestore_driver: FirestoreDriver? = null
-){
+fun AdminNavigation(
+    firestore_driver: FirestoreDriver,
+    on_exit_admin: () -> Unit // Receives the back function from MainNavigator
+) {
     val nav_controller = rememberNavController()
+
 
     // Starts at the admin dashboard
     NavHost(navController = nav_controller, startDestination = "admin") {
 
         composable("admin") {
             AdminScreen(
-                on_campsites = {
-                    nav_controller.navigate("campsites")
-                },
-                on_profiles = {
-                    nav_controller.navigate("profiles")
-                },
-                on_images = {
-                    nav_controller.navigate("images")
-                },
-                on_entrant = {
-                    nav_controller.navigate("entrant")
-                },
-                on_owner = {
-                    nav_controller.navigate("owner")
-                }
+                on_back = on_exit_admin, // Connect the back button to the parent
+                on_campsites = { nav_controller.navigate("campsites") },
+                on_profiles = { nav_controller.navigate("profiles") },
+                on_images = { nav_controller.navigate("images") },
+                on_entrant = { nav_controller.navigate("entrant") },
+                on_owner = { nav_controller.navigate("owner") }
             )
         }
 
         // Campsite management page
         composable("campsites") {
             AdminCampsiteScreen(
-                campsites = campsites,
-                on_remove = on_remove,
-                on_back = {
-                    nav_controller.popBackStack()
-                }
+                campsites = firestore_driver.campsites.values.toList(), // Pull real data from driver
+                on_remove = { campsite ->
+                    // Delete from Firebase
+                    firestore_driver.deleteCampsite(campsite)
+                },
+                on_back = { nav_controller.popBackStack() }
             )
         }
 
         // Profile management page
         composable("profiles") {
             AdminProfileScreen(
-                profiles = profiles,
-                on_remove = on_remove_profile,
-                on_back = {
-                    nav_controller.popBackStack()
-                }
+                profiles = firestore_driver.entrants.values.toList(), // Pull real data from driver
+                on_remove = { profile ->
+                    // Delete from Firebase
+                    firestore_driver.deleteEntrant(profile)
+                },
+                on_back = { nav_controller.popBackStack() }
             )
         }
-
 
         // Image management page
         composable("images") {
             AdminImageScreen(
-                images = images,
-                on_remove = on_remove_image,
-                on_back = {
-                    nav_controller.popBackStack()
-                }
+                images = listOf("image1.png", "image2.png"), // Mock images for now
+                on_remove = { /* TODO in second half */ },
+                on_back = { nav_controller.popBackStack() }
             )
         }
 
-        // Temporary entrant page for testing navigation
-
-        // Admin can switch to the team's entrant interface.
+        // Entrant mode
         composable("entrant") {
-            Column(
-                modifier = Modifier.statusBarsPadding()
-            ) {
-                Button(onClick = {
-                    nav_controller.popBackStack()
-                }) {
+            Column(modifier = Modifier.statusBarsPadding().padding(16.dp)) {
+                Text("Entrant Mode Dashboard (Coming Soon)")
+                Button(onClick = { nav_controller.popBackStack() }) {
                     Text("Back to Admin")
-                }
-
-                // Reuse the team's existing entrant navigation.
-                // Use the same driver instead of creating another one.
-                if (firestore_driver != null) {
-                    mainNavigator(firestore_driver)
-                } else {
-                    Text("Entrant interface not connected yet")
                 }
             }
         }
 
-
-        // Temporary owner page for testing navigation no owner screen yet ask teammakes or i make one
+        // Owner mode
         composable("owner") {
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(16.dp)
-            ) {
-                Text("Campsite Owner Dashboard")
-
-                Button(onClick = {
-                    nav_controller.popBackStack()
-                }) {
+            Column(modifier = Modifier.statusBarsPadding().padding(16.dp)) {
+                Text("Campsite Owner Dashboard (Coming Soon)")
+                Button(onClick = { nav_controller.popBackStack() }) {
                     Text("Back to Admin")
                 }
             }
