@@ -8,11 +8,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NotificationTest {
-
-    private val owner = CampsiteOwner()
-    private val campsite = Campsite()
-    private val aisha = Entrant("entrant_001", "Aisha Khan", "aisha@example.com", "780-555-0101")
-    private val ben = Entrant("entrant_002", "Ben Carter", "ben@example.com", "780-555-0102")
+    private val owner = CampsiteOwner("owner_001", Role.OWNER, "Maria Lopez", "maria@example.com", "780-555-0199")
+    private val campsite = Campsite(
+        name = "Whistlers Campground",
+        location = "Jasper, AB",
+        description = "Forested sites near the Athabasca River.",
+        max_occupancy = 6,
+        price = 32.0f
+    )
+    private val aisha = Entrant("entrant_001", Role.ENTRANT, "Aisha Khan", "aisha@example.com", "780-555-0101")
+    private val ben = Entrant("entrant_002", Role.ENTRANT, "Ben Carter", "ben@example.com", "780-555-0102")
 
     // Lottery-win notification sent to two entrants.
     private fun mockNotification(): Notification {
