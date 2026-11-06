@@ -83,6 +83,16 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         ) { entry ->
             campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
         }
+        /**
+         * AI Citation:
+         * I, David Schumacher, queried duck.ai on how to get a nav_controller composable to take an
+         * argument. I wrote:
+            * kotlin compose how to get a NavHost object to take an argument when its .navigate
+            * method is invoked?
+         * From this it suggested that I use the /{} notation to create extractable values from the
+         * route. I used this notation and modified it to match our requirements. The original
+         * example the AI gave was to convert /{id} into an Int.
+         */
         composable(
             route = "CampsiteDetailScreen/{UID}",
             arguments = listOf(navArgument("UID") { type = NavType.StringType})) { uid ->
