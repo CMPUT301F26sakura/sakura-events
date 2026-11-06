@@ -44,7 +44,6 @@ class Lottery(
 
     /**
      * Adds a [Campsite] to this lottery event.
-     *
      * @param new_campsite The campsite to include.
      */
     fun addCampsite(new_campsite: Campsite) {
@@ -54,7 +53,6 @@ class Lottery(
     }
     /**
      * Removes a [Campsite] from this lottery event.
-     *
      * @param campsite The campsite to remove.
      */
     fun removeCampsite(campsite: Campsite) {
@@ -62,7 +60,6 @@ class Lottery(
     }
     /**
      * Sets the number of winners to draw.
-     *
      * @param new_cap Number of winners.
      */
     fun receiveCapacity(new_cap: Int) {
@@ -72,13 +69,11 @@ class Lottery(
     }
     /**
      * Gets the configured winner capacity.
-     *
      * @return The number of lottery winners to draw.
      */
     fun getCapacity(): Int = capacity
     /**
      * Sets the registration start time.
-     *
      * @param new_start_time Start date/time string.
      */
     fun receiveStartTime(new_start_time: String) {
@@ -86,13 +81,11 @@ class Lottery(
     }
     /**
      * Gets the registration start time.
-     *
      * @return Start date/time string.
      */
     fun getStartTime(): String = start_time
     /**
      * Sets the registration end time.
-     *
      * @param new_end_time End date/time string.
      */
     fun receiveEndTime(new_end_time: String) {
@@ -100,13 +93,11 @@ class Lottery(
     }
     /**
      * Gets the registration end time.
-     *
      * @return End date/time string.
      */
     fun getEndTime(): String = end_time
     /**
      * Generates a list of winners by pooling the waitlists of all member campsites.
-     *
      * @return A list of Entrants that have won the lottery.
      */
     // The following function drawWinners() was generated / modified using Google Gemini 3.1 Pro
@@ -162,7 +153,6 @@ class Lottery(
     }
     /**
      * Populates the provided mutable list with the drawn lottery winners.
-     *
      * @param out_winners_list Mutable list to populate with winners.
      */
     fun getWinnerList(out_winners_list: MutableList<Entrant>) {
