@@ -19,6 +19,7 @@ fun entrantApp() {
     NavHost(navController = navController, startDestination = "home"){
         composable("Home") { homeScreen(navController) }
         composable("Search") { searchScreen(navController) }
+        composable( "Rating") {RatingScreen() }
         composable("Profile") { profileScreen(navController) }
     }
 }

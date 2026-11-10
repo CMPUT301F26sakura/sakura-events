@@ -1,0 +1,96 @@
+package com.example.sakuraevents
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+
+
+/*
+*Composable function to build the campsite rating Screen
+*Text displays the title of the rating Screen
+*/
+
+@Composable
+fun RatingScreen(
+    reservation: Reservation? = null,
+    entrant: Entrant? = null
+) {
+    var rating by remember { mutableIntStateOf(0) }
+    var submitted by remember { mutableStateOf(false) }
+    val canRate = reservation?.getState() == "COMPLETE"
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0))
+            .padding(55.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Rate Your Campsite")
+
+        Row {
+            for (star in 1..5) {
+                Text(
+                    text = "★",
+                    color = if (star <= rating)
+                        Color.Yellow else Color.Gray,
+                    fontSize = 50.sp,
+                    modifier = Modifier.clickable {
+                        rating = star
+                    }
+                )
+            }
+        }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    if (canRate && entrant != null && reservation != null) {
+                        reservation.getCampsite().addRating(entrant, rating.toFloat())
+                        submitted = true
+                    }
+                    },
+
+                enabled = rating > 0 && canRate && entrant != null && !submitted,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50),
+                    contentColor = Color.White
+                )
+            ) {
+                Text(text = "Submit Rating")
+            }
+
+                if (submitted) {
+                    Text(
+                        text = " Rating submitted successfully",
+                        color = Color(0xFF4CAF50)
+                    )
+                }
+            }
+        }
+
+
+
+
+
