@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -71,14 +72,14 @@ fun NotificationCard(notification: Notification, modifier: Modifier = Modifier) 
             )
             Text(
                 text = notification.getMessage(),
-                color = COLOURS.BLACK.colour,
+                color = Color.Black,
                 modifier = Modifier.padding(top = 4.dp)
             )
             if (notification.getDateSent().isNotBlank()) {
                 Text(
                     text = notification.getDateSent(),
                     fontSize = 12.sp,
-                    color = COLOURS.BLACK.colour,
+                    color = Color.Black,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }

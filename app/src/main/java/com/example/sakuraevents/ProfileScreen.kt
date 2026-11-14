@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver, innerPadding: PaddingValues){
+fun profileScreen(nav_controller: NavController, innerPadding: PaddingValues){
 
     /**
      * display the select icon with different color to distinguish
@@ -60,15 +60,6 @@ fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDrive
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
                 Text("My Campsites")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { nav_controller.navigate("AdminDashboard") },
-                colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
-            ) {
-                Text("Admin Dashboard")
             }
         }
     }
