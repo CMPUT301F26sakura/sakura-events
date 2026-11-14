@@ -22,10 +22,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -50,82 +52,114 @@ enum class COLOURS(val colour: Color){
     WHITE(Color(0xFFFFFFFF))
 }
 
-
-
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
     val nav_controller = rememberNavController()
     val search_screen = SearchScreen(nav_controller, firestoreDriver, modifier)
+    val nav_current_route by nav_controller.currentBackStackEntryAsState()
+    val current_location = nav_current_route?.destination?.route
 
-    NavHost(navController = nav_controller, startDestination = "Home") {
-        composable("Home") { homeScreen(nav_controller, firestoreDriver, modifier) }
-        composable("Search") { search_screen.searchScreen() }
-        composable("Profile") { profileScreen(nav_controller, firestoreDriver) }
-        composable("AdminDashboard") {
-            AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
-        }
+    Scaffold(
+        topBar = {
+            topBar(nav_controller, current_location)
+        },
+        bottomBar = {
+            bottomBar(nav_controller, current_location)
+        },
+        containerColor = COLOURS.LIGHTYELLOW.colour
+    ) { innerPadding ->
+        //put your US stories code under
+        NavHost(navController = nav_controller, startDestination = "Home") {
+            composable("Home") { homeScreen(nav_controller, firestoreDriver, modifier, innerPadding) }
+            composable("Search") { search_screen.searchScreen(innerPadding) }
+            composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
+            composable("AdminDashboard") {
+                AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
+            }
 
-        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
-        // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
-        composable("OwnerCampsites") { ownerCampsiteListScreen(nav_controller, firestoreDriver) }
-        composable("CampsiteDetails/{uid}") { entry ->
-            campsiteDetailsScreen(
-                nav_controller,
-                firestoreDriver,
-                entry.arguments?.getString("uid") ?: ""
-            )
-        }
-        composable(
-            "CampsiteForm?uid={uid}",
-            arguments = listOf(navArgument("uid") {
-                type = NavType.StringType; nullable = true; defaultValue = null
-            })
-        ) { entry ->
-            campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
+            // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+            // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
+            composable("OwnerCampsites") { ownerCampsiteListScreen(nav_controller, firestoreDriver) }
+            composable("CampsiteDetails/{uid}") { entry ->
+                campsiteDetailsScreen(
+                    nav_controller,
+                    firestoreDriver,
+                    entry.arguments?.getString("uid") ?: ""
+                )
+            }
+            composable(
+                "CampsiteForm?uid={uid}",
+                arguments = listOf(navArgument("uid") {
+                    type = NavType.StringType; nullable = true; defaultValue = null
+                })
+            ) { entry ->
+                campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
+            }
+            /**
+             * AI Citation:
+             * I, David Schumacher, queried duck.ai on how to get a nav_controller composable to take an
+             * argument. I wrote:
+             * kotlin compose how to get a NavHost object to take an argument when its .navigate
+             * method is invoked?
+             * From this it suggested that I use the /{} notation to create extractable values from the
+             * route. I used this notation and modified it to match our requirements. The original
+             * example the AI gave was to convert /{id} into an Int.
+             */
+            composable(
+                route = "CampsiteDetailScreen/{UID}",
+                arguments = listOf(navArgument("UID") { type = NavType.StringType})) { uid ->
+                val UID = uid.arguments?.getString("UID") as String
+                campsiteDetailsScreen(nav_controller, firestoreDriver, UID) }
         }
     }
+
 }
 
-@Composable
-fun bottomBar(nav_controller: NavController) {
-    val nav_current_route by nav_controller.currentBackStackEntryAsState()
-    val current_icon = nav_current_route?.destination?.route
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+
+@Composable
+fun bottomBar(nav_controller: NavController, current_location: String?) {
+    BottomAppBar(
+        containerColor = COLOURS.DARKYELLOW.colour
     ) {
-        IconButton(onClick = { nav_controller.navigate("Home") }) {
-            Icon(
-                imageVector = Icons.Default.Home,
-                contentDescription = "Home",
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(if (current_icon == "Home") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
-                tint =  Color.Black
-            )
-        }
-        IconButton(onClick = { nav_controller.navigate("Search") }) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(if (current_icon == "Search") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
-                tint = Color.Black
-            )
-        }
-        IconButton(onClick = { nav_controller.navigate("Profile") }) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile",
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(if (current_icon == "Profile") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
-                tint = Color.Black
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            IconButton(onClick = { nav_controller.navigate("Home") }) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(if (current_location == "Home") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                    tint =  Color.Black
+                )
+            }
+            IconButton(onClick = { nav_controller.navigate("Search") }) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(if (current_location == "Search") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                    tint = Color.Black
+                )
+            }
+            IconButton(onClick = { nav_controller.navigate("Profile") }) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(if (current_location == "Profile") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                    tint = Color.Black
+                )
+            }
         }
     }
+
+
 }
 
 /**
@@ -144,20 +178,18 @@ fun bottomBar(nav_controller: NavController) {
  * I fully understand this code and can answer questions about it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun topBar(nav_controller: NavController) {
-    val nav_current_route by nav_controller.currentBackStackEntryAsState()
-    val current_icon = nav_current_route?.destination?.route
-
+@Composable
+fun topBar(nav_controller: NavController, current_location: String?) {
     CenterAlignedTopAppBar(
-        title = { if (current_icon in listOf("Home", "Search", "Profile")) {
-            Text(current_icon as String)
+        title = { if (current_location in listOf("Home", "Search", "Profile")) {
+            Text(current_location as String)
         }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = COLOURS.LIGHTYELLOW.colour
         ),
         navigationIcon = {
-            if (current_icon !in listOf("Home", "Search", "Profile")) {
+            if (current_location !in listOf("Home", "Search", "Profile")) {
                 IconButton(onClick = { nav_controller.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
