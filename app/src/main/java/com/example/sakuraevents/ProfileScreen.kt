@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ButtonDefaults
@@ -40,50 +41,36 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver){
+fun profileScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver, innerPadding: PaddingValues){
 
     /**
      * display the select icon with different color to distinguish
      * one variable to track the current route
      */
-    Scaffold(
-        topBar = {
-            topBar(nav_controller)
-        },
-        bottomBar = {
-            BottomAppBar(
-                containerColor = COLOURS.DARKYELLOW.colour
-            ) {
-                bottomBar(nav_controller)
-            }
-
-        },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { innerPadding ->
         //put your US stories code under
 
 
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
-                    Text("My Campsites")
-                }
+    Box(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
+                Text("My Campsites")
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = { nav_controller.navigate("AdminDashboard") },
-                    colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
-                ) {
-                    Text("Admin Dashboard")
-                }
+            Button(
+                onClick = { nav_controller.navigate("AdminDashboard") },
+                colors = ButtonDefaults.buttonColors(containerColor = COLOURS.DARKGREEN.colour)
+            ) {
+                Text("Admin Dashboard")
             }
         }
     }
+
 }

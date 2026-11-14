@@ -26,6 +26,7 @@
 package com.example.sakuraevents
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -48,36 +49,22 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun homeScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier){
+fun homeScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier, innerPadding: PaddingValues){
 
     /**
      * display the select icon with different color to distinguish
      * one variable to track the current route
      */
-    Scaffold(
-        topBar = {
-            topBar(nav_controller)
-        },
-        bottomBar = {
-            BottomAppBar(
-                containerColor = COLOURS.DARKYELLOW.colour
-            ) {
-                bottomBar(nav_controller)
-            }
 
-        },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { innerPadding ->
-        //put your US stories code under
+    //put your US stories code under
 
-
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "Main Screen Content")
-        }
+    Box(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = "Main Screen Content")
     }
+
 }
