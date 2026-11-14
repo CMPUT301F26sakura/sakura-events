@@ -145,7 +145,7 @@ fun campsiteFormScreen(nav_controller: NavController, firestore_driver: Firestor
                 // Registering: the campsite needs its UID before it is added to the owner.
                 val owner = firestore_driver.owners[TEST_OWNER_UID]
                     ?: return@save "Owner \"$TEST_OWNER_UID\" was not found."
-                val new_campsite = buildCampsiteFromForm(firestore_driver.nextCampsiteUid(), values)
+                val new_campsite = buildCampsiteFromForm(firestore_driver.generateNextUid(firestore_driver.campsites.keys), values)
                 owner.addCampsite(new_campsite)
                 firestore_driver.addCampsite(new_campsite)
                 firestore_driver.updateOwner(owner)
