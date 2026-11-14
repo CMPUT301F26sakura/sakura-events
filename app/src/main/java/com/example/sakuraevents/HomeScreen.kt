@@ -49,7 +49,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun homeScreen(nav_controller: NavController, firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier, innerPadding: PaddingValues){
+fun homeScreen(modifier: Modifier = Modifier, innerPadding: PaddingValues){
 
     /**
      * display the select icon with different color to distinguish

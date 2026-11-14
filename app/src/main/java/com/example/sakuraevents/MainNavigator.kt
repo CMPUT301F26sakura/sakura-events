@@ -14,15 +14,20 @@ package com.example.sakuraevents
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Cabin
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,7 +39,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -48,14 +56,11 @@ enum class COLOURS(val colour: Color){
     DARKYELLOW(Color(0xFFD8D870)),
     GREEN(Color(0xFF62B266)),
     DARKGREEN(Color(0xFF419874)),
-    BLACK(Color(0xFF000000)),
-    WHITE(Color(0xFFFFFFFF))
 }
 
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
     val nav_controller = rememberNavController()
-    val search_screen = SearchScreen(nav_controller, firestoreDriver, modifier)
     val nav_current_route by nav_controller.currentBackStackEntryAsState()
     val current_location = nav_current_route?.destination?.route
 
@@ -70,12 +75,13 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     ) { innerPadding ->
         //put your US stories code under
         NavHost(navController = nav_controller, startDestination = "Home") {
-            composable("Home") { homeScreen(nav_controller, firestoreDriver, modifier, innerPadding) }
-            composable("Search") { search_screen.searchScreen(innerPadding) }
-            composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
-            composable("AdminDashboard") {
-                AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
-            }
+            composable("Home") { homeScreen(modifier, innerPadding) }
+            composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
+            composable("Profile") { profileScreen(nav_controller, innerPadding) }
+            composable("AdminDashboard") { AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() }) }
+            //composable("AdminDashboard") {
+            //    AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
+            //}
 
             // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
             // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
@@ -116,7 +122,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
 }
 
 
-
+// The following are common composable elements.
 @Composable
 fun bottomBar(nav_controller: NavController, current_location: String?) {
     BottomAppBar(
@@ -155,6 +161,30 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
                         .background(if (current_location == "Profile") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
                     tint = Color.Black
                 )
+            }
+            if (true) {
+                IconButton(onClick = { }) {
+                    Icon(
+                        imageVector = Icons.Default.Cabin,
+                        contentDescription = "Profile",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(if (current_location == "OwnedCampsites") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                        tint = Color.Black
+                    )
+                }
+            }
+            if (true) {
+                IconButton(onClick = { nav_controller.navigate("AdminDashboard") }) {
+                    Icon(
+                        imageVector = Icons.Default.Dashboard,
+                        contentDescription = "Profile",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(if (current_location == "AdminDashboard") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                        tint = Color.Black
+                    )
+                }
             }
         }
     }
@@ -199,4 +229,31 @@ fun topBar(nav_controller: NavController, current_location: String?) {
             }
         }
     )
+}
+
+@Composable
+fun standardButton(clicked: () -> Unit, test_tag: String, button_text: String, icon: ImageVector? = null) {
+    Button(
+        onClick = { clicked() },
+        Modifier.testTag((test_tag)),
+        colors = ButtonColors(
+            containerColor = COLOURS.DARKGREEN.colour,
+            contentColor = Color.White,
+            disabledContainerColor = Color.DarkGray,
+            disabledContentColor = Color.White
+        ),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "Back"
+            )
+        }
+        Text(
+            text = button_text,
+            fontSize = 20.sp,
+            color = Color.White
+        )
+    }
 }
