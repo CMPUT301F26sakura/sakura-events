@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
 
 /**
  * File: AdminScreen.kt
@@ -44,7 +45,7 @@ fun AdminScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = COLOURS.BLACK.colour
+                    tint = Color.Black
                 )
             }
             Text("Admin Dashboard", style = MaterialTheme.typography.headlineMedium)
