@@ -23,6 +23,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 
 
 /**
@@ -198,7 +199,15 @@ class FirestoreDriver {
         }
     }
 
+    fun generateNextUid(source_map:  Set<String>): String {
+        if (source_map.isNotEmpty()) {
+            return ((source_map.map { it.toInt() }).sortedDescending()[0] + 1).toString()
+        }
+        return "0"
+    }
+
     fun addReservation(reservation: Reservation): Task<Void> {
+        val UID: String = if (reservation.UID.isNotBlank()) reservation.UID else generateNextUid(_reservations.keys)
         val firestore_format = mapOf<String, Any>( // Any type is a little dangerous, requires us to be disciplined in our typing.
             "campsite" to reservation.getCampsite().UID,
             "entrant" to reservation.getEntrant().UID,
@@ -206,7 +215,7 @@ class FirestoreDriver {
             "beginning_date" to reservation.getBeginningDate(),
             "end_date" to reservation.getEndDate(),
             "reservation_state" to reservation.getState())
-        return reservations_ref.document(reservation.UID).set(firestore_format)
+        return reservations_ref.document(UID).set(firestore_format)
     }
     fun deleteReservation(reservation: Reservation): Task<Void> {
         // I think I need to add something here that also removes the object references.
@@ -225,18 +234,13 @@ class FirestoreDriver {
      *
      * @return the next free campsite UID as a String.
      */
-    fun nextCampsiteUid(): String {
-        if (_campsites.isNotEmpty()) {
-            return ((_campsites.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
-        }
-        return "0"
-    }
+
 
     fun addCampsite(campsite: Campsite): Task<Void> {
 
         // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
         // Use the campsite's own UID if it already has one, otherwise pick the next free UID.
-        val UID: String = if (campsite.UID.isNotBlank()) campsite.UID else nextCampsiteUid()
+        val UID: String = if (campsite.UID.isNotBlank()) campsite.UID else generateNextUid(_campsites.keys)
         val firestore_format = mapOf<String, Any>(
             "name" to campsite.getName(),
             "location" to campsite.getLocation(),
@@ -284,13 +288,7 @@ class FirestoreDriver {
     }
 
     fun addEntrant(entrant: Entrant): Task<Void> {
-        val UID: String
-        if (_entrants.isNotEmpty()) {
-            UID = ((_entrants.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
-        }
-        else {
-            UID = "0"
-        }
+        val UID: String = if (entrant.UID.isNotBlank()) entrant.UID else generateNextUid(_entrants.keys)
         val firestore_format = mapOf<String, Any>(
             "role" to entrant.getRole(),
             "name" to entrant.getName(),
@@ -305,13 +303,7 @@ class FirestoreDriver {
     }
 
     fun addOwner(owner: CampsiteOwner): Task<Void> {
-        val UID: String
-        if (_owners.isNotEmpty()) {
-            UID = ((_owners.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
-        }
-        else {
-            UID = "0"
-        }
+        val UID: String = if (owner.UID.isNotBlank()) owner.UID else generateNextUid(_owners.keys)
         val firestore_format = mapOf<String, Any>(
             "role" to owner.getRole(),
             "name" to owner.getName(),
@@ -347,13 +339,7 @@ class FirestoreDriver {
     }
 
     fun addAdmin(admin: Admin): Task<Void> {
-        val UID: String
-        if (_admins.isNotEmpty()) {
-            UID = ((_admins.keys.map { it.toInt() }).sortedDescending()[0] + 1).toString()
-        }
-        else {
-            UID = "0"
-        }
+        val UID: String = if (admin.UID.isNotBlank()) admin.UID else generateNextUid(_admins.keys)
         val firestore_format = mapOf<String, Any>(
             "role" to admin.getRole(),
             "name" to admin.getName(),
@@ -361,7 +347,7 @@ class FirestoreDriver {
             "phone_number" to admin.getPhoneNumber(),
             "notifications" to admin.notifications.map { it.UID },
             "owned_campsites" to admin.owned_campsites.map { it.UID })
-        return admins_ref.document(admin.UID).set(firestore_format)
+        return admins_ref.document(UID).set(firestore_format)
     }
     fun deleteAdmin(admin: Admin): Task<Void> {
         admin.clearReservations()
