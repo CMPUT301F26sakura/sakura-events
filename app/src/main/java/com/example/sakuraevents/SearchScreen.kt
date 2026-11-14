@@ -59,136 +59,121 @@ class SearchScreen(val nav_controller: NavController, val firestore_driver: Fire
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun searchScreen() {
+    fun searchScreen(innerPadding: PaddingValues) {
 
         /**
          * display the select icon with different color to distinguish
          * one variable to track the current route
          */
-        Scaffold(
-            topBar = {
-                topBar(nav_controller)
-            },
-            bottomBar = {
-                BottomAppBar(
-                    containerColor = COLOURS.DARKYELLOW.colour
-                ) {
-                    bottomBar(nav_controller)
-                }
 
-            },
-            containerColor = COLOURS.LIGHTYELLOW.colour
-        ) { innerPadding ->
-            //put your US stories code under
-
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                TextField(
+                    value = search_bar,
+                    onValueChange = {
+                        search_bar = it
+                    },
+                    label = {
+                        Text("Search")
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .testTag("searchBarInput")
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = {}, modifier
+                        .testTag(("LocatiomFilter")),
+                    colors = ButtonColors(
+                        containerColor = COLOURS.DARKGREEN.colour,
+                        contentColor = COLOURS.WHITE.colour,
+                        disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                        disabledContentColor = COLOURS.DARKGREEN.colour
+                    )
                 ) {
-                    TextField(
-                        value = search_bar,
-                        onValueChange = {
-                            search_bar = it
-                        },
-                        label = {
-                            Text("Search")
-                        },
-                        singleLine = true,
-                        modifier = Modifier
-                            .testTag("searchBarInput")
-                            .clip(RoundedCornerShape(10.dp))
+                    Text(
+                        text = "Location",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
                     )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                Button(
+                    onClick = {}, modifier
+                        .testTag(("DateFilter")),
+                    colors = ButtonColors(
+                        containerColor = COLOURS.DARKGREEN.colour,
+                        contentColor = COLOURS.WHITE.colour,
+                        disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                        disabledContentColor = COLOURS.DARKGREEN.colour
+                    )
                 ) {
-                    Button(
-                        onClick = {}, modifier
-                            .testTag(("LocatiomFilter")),
-                        colors = ButtonColors(
-                            containerColor = COLOURS.DARKGREEN.colour,
-                            contentColor = COLOURS.WHITE.colour,
-                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
-                            disabledContentColor = COLOURS.DARKGREEN.colour
-                        )
-                    ) {
-                        Text(
-                            text = "Location",
-                            fontSize = 20.sp,
-                            color = COLOURS.WHITE.colour
-                        )
-                    }
-                    Button(
-                        onClick = {}, modifier
-                            .testTag(("DateFilter")),
-                        colors = ButtonColors(
-                            containerColor = COLOURS.DARKGREEN.colour,
-                            contentColor = COLOURS.WHITE.colour,
-                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
-                            disabledContentColor = COLOURS.DARKGREEN.colour
-                        )
-                    ) {
-                        Text(
-                            text = "Date",
-                            fontSize = 20.sp,
-                            color = COLOURS.WHITE.colour
-                        )
-                    }
-                    Button(
-                        onClick = {}, modifier
-                            .testTag(("OccupancyFilter")),
-                        colors = ButtonColors(
-                            containerColor = COLOURS.DARKGREEN.colour,
-                            contentColor = COLOURS.WHITE.colour,
-                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
-                            disabledContentColor = COLOURS.DARKGREEN.colour
-                        )
-                    ) {
-                        Text(
-                            text = "Occupancy",
-                            fontSize = 20.sp,
-                            color = COLOURS.WHITE.colour
-                        )
-                    }
+                    Text(
+                        text = "Date",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
+                    )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                Button(
+                    onClick = {}, modifier
+                        .testTag(("OccupancyFilter")),
+                    colors = ButtonColors(
+                        containerColor = COLOURS.DARKGREEN.colour,
+                        contentColor = COLOURS.WHITE.colour,
+                        disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                        disabledContentColor = COLOURS.DARKGREEN.colour
+                    )
                 ) {
-                    Button(
-                        onClick = {}, modifier
-                            .testTag(("ClearFilter")),
-                        colors = ButtonColors(
-                            containerColor = COLOURS.DARKGREEN.colour,
-                            contentColor = COLOURS.WHITE.colour,
-                            disabledContainerColor = COLOURS.DARKYELLOW.colour,
-                            disabledContentColor = COLOURS.DARKGREEN.colour
-                        ), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
-                    ) {
-                        Text(
-                            text = "Clear Filters",
-                            fontSize = 20.sp,
-                            color = COLOURS.WHITE.colour
-                        )
-                    }
+                    Text(
+                        text = "Occupancy",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
+                    )
                 }
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(
-                        firestore_driver.campsites.entries.toList(),
-                        key = { it.key }) { campsite ->
-                        Spacer(modifier = Modifier.height(12.dp))
-                        displayCampsites(campsite.value)
-                    }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(
+                    onClick = {}, modifier
+                        .testTag(("ClearFilter")),
+                    colors = ButtonColors(
+                        containerColor = COLOURS.DARKGREEN.colour,
+                        contentColor = COLOURS.WHITE.colour,
+                        disabledContainerColor = COLOURS.DARKYELLOW.colour,
+                        disabledContentColor = COLOURS.DARKGREEN.colour
+                    ), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = "Clear Filters",
+                        fontSize = 20.sp,
+                        color = COLOURS.WHITE.colour
+                    )
+                }
+            }
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(
+                    firestore_driver.campsites.entries.toList(),
+                    key = { it.key }) { campsite ->
+                    Spacer(modifier = Modifier.height(12.dp))
+                    displayCampsites(campsite.value)
                 }
             }
         }
     }
+
 
     @Composable
     fun displayCampsites(campsite: Campsite) {
