@@ -6,6 +6,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
 
 /**
  * File: AdminScreen.kt
@@ -25,36 +30,41 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AdminScreen(
-    on_campsites: () -> Unit,
-    on_profiles: () -> Unit,
-    on_images: () -> Unit,
-    on_entrant: () -> Unit, //dashboards we redesign let user admin adble to sleect user or entrant
-    on_owner: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
-
-        Text("Admin Dashboard")
+    Column(modifier = Modifier.padding(20.dp)) {
+        Spacer(modifier =  Modifier.height(16.dp))
+        // 2. Simple Row for Back Button + Title
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = {  }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
+            Text("Admin Dashboard", style = MaterialTheme.typography.headlineMedium)
+        }
 
         // Admin management options
-        Button(onClick = on_campsites) {
+        Button(onClick = {  }) {
             Text("Manage Campsites")
         }
 
-        Button(onClick = on_profiles) {
+        Button(onClick = {  }) {
             Text("Manage Profiles")
         }
 
-        Button(onClick = on_images) {
+        Button(onClick = {  }) {
             Text("Manage Images")
         }
         // Admins can also use entrant and campsite owner features.
         Text("Other Roles")
 
-        Button(onClick = on_entrant) {
+        Button(onClick = {  }) {
             Text("Continue as Entrant")
         }
 
-        Button(onClick = on_owner) {
+        Button(onClick = {  }) {
             Text("Continue as Campsite Owner")
         }
     }
@@ -75,11 +85,16 @@ fun AdminCampsiteScreen(
     on_remove: (Campsite) -> Unit,
     on_back: () -> Unit
 ) {
+
     Column(
+
         modifier = Modifier
             .statusBarsPadding()
             .padding(16.dp)
-    ) {
+
+    )
+
+    {
         Button(onClick = on_back) {
             Text("Back")
         }

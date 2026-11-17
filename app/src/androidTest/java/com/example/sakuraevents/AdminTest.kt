@@ -165,6 +165,7 @@ class AdminTest {
     fun testDashboard() {
         compose_rule.setContent {
             AdminScreen(
+                on_back = {},
                 on_campsites = {},
                 on_profiles = {},
                 on_images = {},
