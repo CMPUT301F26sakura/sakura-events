@@ -46,12 +46,7 @@ fun AdminNavigation(
 
         composable("admin") {
             AdminScreen(
-                on_back = on_exit_admin, // Connect the back button to the parent
-                on_campsites = { nav_controller.navigate("campsites") },
-                on_profiles = { nav_controller.navigate("profiles") },
-                on_images = { nav_controller.navigate("images") },
-                on_entrant = { nav_controller.navigate("entrant") },
-                on_owner = { nav_controller.navigate("owner") }
+
             )
         }
 
