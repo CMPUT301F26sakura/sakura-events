@@ -1,3 +1,13 @@
+/**
+ * File: Reservation.kt
+ * Purpose: Model class representing an entrant's campsite reservation for a specific date range
+ * and guest count.
+ *
+ * User Stories Addressed:
+ * - US 01.04.01, US 01.05.01, US 01.06.01, US 01.07.01 (Reservation lifecycle and cleanup when
+ * campsites/profiles are removed in US 03.01.01 & US 03.02.01).
+ */
+
 package com.example.sakuraevents
 
 enum class ReservationState {
@@ -22,8 +32,8 @@ enum class ReservationState {
  * @property end_date the date on which the reservation ends.
  *      both of the dates are stored as a string in ISO 8601 format, eg: 'YYYY-MM-DD'.
  */
-class Reservation (public val UID: String = "",
-                   private val campsite: Campsite = Campsite(),
+class Reservation (val UID: String = "",
+                   private val campsite: Campsite,
                    private val entrant: Entrant,
                    private val guest_count: Int,
                    private val beginning_date: String,
@@ -96,16 +106,6 @@ class Reservation (public val UID: String = "",
      */
     fun getState(): String {
         return reservation_state.name
-    }
-
-    /**
-     * This getter returns the string value of the reservation's UID.
-     *
-     * This method does not take any input parameters.
-     * @return the string repr of the UID.
-     */
-    fun getUID(): String {
-        return UID
     }
 
     /**
