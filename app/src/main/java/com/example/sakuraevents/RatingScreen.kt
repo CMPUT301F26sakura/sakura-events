@@ -33,11 +33,15 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun RatingScreen(
     reservation: Reservation? = null,
-    entrant: Entrant? = null
+    entrant: Entrant? = null,
+    firestoreDriver: FirestoreDriver? = null
 ) {
     var rating by remember { mutableIntStateOf(0) }
     var submitted by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
     val canRate = reservation?.getState() == "COMPLETE"
+    val alreadyRated = reservation?.getCampsite()?.ratings
+        ?.any { pair -> pair.first.UID == entrant?.UID} ?: false
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,12 +71,25 @@ fun RatingScreen(
             Button(
                 onClick = {
                     if (canRate && entrant != null && reservation != null) {
-                        reservation.getCampsite().addRating(entrant, rating.toFloat())
-                        submitted = true
+                        val campsite = reservation.getCampsite()
+                        campsite.addRating(entrant, rating.toFloat())
+                        if(firestoreDriver != null){
+                            firestoreDriver.updateCampsite(campsite)
+                                .addOnSuccessListener {
+                                    submitted = true
+                                }
+                                .addOnFailureListener {
+                                    errorMessage = "Failed to save rating. Please try again."
+
+                                }
+
+                        }
                     }
                     },
 
-                enabled = rating > 0 && canRate && entrant != null && !submitted,
+                enabled = rating > 0 && canRate && entrant != null &&
+                        firestoreDriver != null && !submitted && !alreadyRated,
+
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4CAF50),
                     contentColor = Color.White
@@ -87,6 +104,13 @@ fun RatingScreen(
                         color = Color(0xFF4CAF50)
                     )
                 }
+        if (errorMessage.isNotEmpty()){
+            Text(
+                text = errorMessage,
+                color = Color.Red
+            )
+        }
+
             }
         }
 
