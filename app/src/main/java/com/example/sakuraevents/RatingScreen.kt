@@ -38,6 +38,7 @@ fun RatingScreen(
 ) {
     var rating by remember { mutableIntStateOf(0) }
     var submitted by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val canRate = reservation?.getState() == "COMPLETE"
     val alreadyRated = reservation?.getCampsite()?.ratings
@@ -72,13 +73,34 @@ fun RatingScreen(
                 onClick = {
                     if (canRate && entrant != null && reservation != null) {
                         val campsite = reservation.getCampsite()
-                        campsite.addRating(entrant, rating.toFloat())
+                        isSaving = true
+                        errorMessage = " "
+                        val updatedCampsite = Campsite(
+                            UID = campsite.UID,
+                            name = campsite.getName(),
+                            location = campsite.getLocation(),
+                            description = campsite.getDescription(),
+                            max_occupancy = campsite.getMaxOccupancy(),
+                            qr_code = campsite.getQrCode(),
+                            price = campsite.getPrice(),
+                            _tags = campsite.tags.toMutableList(),
+                            _booking_period_dates = campsite.booking_period_dates.toMutableList(),
+                            _reservations = campsite.reservations.toMutableList(),
+                            _ratings = campsite.ratings.toMutableList(),
+                            average_rating = campsite.getAvgRating().toFloat(),
+                            _waiting_list = campsite.waiting_list.toMutableList(),
+                            waitlist_capacity = campsite.getWaitlistCapacity()
+                        )
+
+                        updatedCampsite.addRating(entrant, rating.toFloat())
                         if(firestoreDriver != null){
-                            firestoreDriver.updateCampsite(campsite)
+                            firestoreDriver.updateCampsite(updatedCampsite)
                                 .addOnSuccessListener {
                                     submitted = true
+                                    isSaving = false
                                 }
                                 .addOnFailureListener {
+                                    isSaving = false
                                     errorMessage = "Failed to save rating. Please try again."
 
                                 }
@@ -88,7 +110,7 @@ fun RatingScreen(
                     },
 
                 enabled = rating > 0 && canRate && entrant != null &&
-                        firestoreDriver != null && !submitted && !alreadyRated,
+                        firestoreDriver != null && !submitted && !alreadyRated && !isSaving,
 
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4CAF50),
