@@ -78,10 +78,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             composable("Home") { homeScreen(modifier, innerPadding) }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
             composable("Profile") { profileScreen(nav_controller, innerPadding) }
-            composable("AdminDashboard") { AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() }) }
-            //composable("AdminDashboard") {
-            //    AdminNavigation(firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() })
-            //}
+            composable("AdminDashboard") { AdminScreen() } //firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() }) }
 
             // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
             // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
@@ -210,16 +207,24 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun topBar(nav_controller: NavController, current_location: String?) {
+    val display_names: Map<String, String> = mapOf(
+        "Home" to "Home",
+        "Search" to "Search",
+        "Profile" to "Profile",
+        "AdminDashboard" to "Admin Dashboard",
+        "CampsiteDetailScreen/{UID}" to "Campsite Details",
+        "" to "",
+        )
     CenterAlignedTopAppBar(
-        title = { if (current_location in listOf("Home", "Search", "Profile")) {
-            Text(current_location as String)
+        title = { if (current_location is String) {
+            Text(display_names[current_location] as String)
         }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = COLOURS.LIGHTYELLOW.colour
         ),
         navigationIcon = {
-            if (current_location !in listOf("Home", "Search", "Profile")) {
+            if (current_location !in listOf("Home", "Search", "Profile", "AdminDashboard")) {
                 IconButton(onClick = { nav_controller.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
