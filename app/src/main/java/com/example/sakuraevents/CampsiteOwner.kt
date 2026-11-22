@@ -31,14 +31,17 @@ package com.example.sakuraevents
  */
 open class CampsiteOwner(
     UID: String = "",
-    role: Role,
+    role: Role = Role.OWNER,
     name: String,
     email: String,
     phone_number: String,
     _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
     _notifications: MutableList<Notification> = mutableListOf<Notification>(),
-    private var _owned_campsites: MutableList<Campsite> = mutableListOf()
-): Entrant(UID, role, name, email, phone_number, _reservations, _notifications) {
+    private var _owned_campsites: MutableList<Campsite> = mutableListOf(),
+    is_entrant: Boolean = (role == Role.ENTRANT),
+    is_owner: Boolean = (role == Role.OWNER),
+    is_admin: Boolean = (role == Role.ADMIN),
+): Entrant(UID, role, name, email, phone_number, _reservations, _notifications, is_entrant, is_owner, is_admin) {
 
     val owned_campsites: List<Campsite> get() = _owned_campsites
 
@@ -50,7 +53,7 @@ open class CampsiteOwner(
      * @return Nothing
      */
     fun addCampsite(campsite: Campsite) {
-        if (!_owned_campsites.any { it === campsite }) {
+        if (!_owned_campsites.any { it === campsite || (campsite.UID.isNotBlank() && it.UID == campsite.UID) }) {
             _owned_campsites.add(campsite)
         }
     }
@@ -63,6 +66,6 @@ open class CampsiteOwner(
      * @return Nothing
      */
     fun removeCampsite(campsite: Campsite) {
-        _owned_campsites.removeIf { it === campsite }
+        _owned_campsites.removeIf { it === campsite || (campsite.UID.isNotBlank() && it.UID == campsite.UID) }
     }
 }

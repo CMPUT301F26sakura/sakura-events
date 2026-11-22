@@ -37,17 +37,24 @@ enum class Role {
  * @property _notifications Backing mutable list of notifications delivered to the entrant.
  */
 
-open class Entrant (val UID: String= "",
-                    private val role: Role,
-                    private var name: String,
-                    private var email: String,
-                    private var phone_number: String,
-                    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
-                    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
-
+open class Entrant (
+    val UID: String= "",
+    private val role: Role = Role.ENTRANT,
+    private var name: String,
+    private var email: String,
+    private var phone_number: String,
+    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+    private val _notifications: MutableList<Notification> = mutableListOf<Notification>(),
+    var is_entrant: Boolean = (role == Role.ENTRANT),
+    var is_owner: Boolean = (role == Role.OWNER),
+    var is_admin: Boolean = (role == Role.ADMIN)
+) {
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
 
+    val has_entrant_access: Boolean get() = is_entrant || is_admin
+    val has_owner_access: Boolean get() = is_owner || is_admin
+    val has_admin_access: Boolean get() = is_admin
     /**
      * Adds a [Reservation] to the entrant's reservation list if not already present.
      * @param reservation The [Reservation] object to add.
@@ -73,7 +80,11 @@ open class Entrant (val UID: String= "",
      * @return Role name string ("ENTRANT", "OWNER", or "ADMIN").
      */
     fun getRole(): String {
-        return role.toString()
+        val active_roles = mutableListOf<String>()
+        if (is_entrant) active_roles.add("ENTRANT")
+        if (is_owner) active_roles.add("OWNER")
+        if (is_admin) active_roles.add("ADMIN")
+        return if (active_roles.isEmpty()) role.toString() else active_roles.joinToString(", ")
     }
     /**
      * Returns the entrant's full name.
