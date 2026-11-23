@@ -46,7 +46,6 @@ fun AdminNavigation(
 
         composable("admin") {
             AdminScreen(
-
             )
         }
 

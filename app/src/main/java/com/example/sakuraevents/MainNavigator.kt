@@ -78,7 +78,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             composable("Home") { homeScreen(modifier, innerPadding) }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
             composable("Profile") { profileScreen(nav_controller, innerPadding) }
-            composable("AdminDashboard") { AdminScreen() } //firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() }) }
+            composable("AdminDashboard") { AdminScreen(innerPadding = innerPadding) } //firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() }) }
 
             // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
             // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
@@ -159,18 +159,17 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
                     tint = Color.Black
                 )
             }
-            if (true) {
-                IconButton(onClick = { }) {
+                IconButton(onClick = { nav_controller.navigate("OwnerCampsites") }) {
                     Icon(
                         imageVector = Icons.Default.Cabin,
-                        contentDescription = "Profile",
+                        contentDescription = "Owner Campsites",
                         modifier = Modifier
                             .size(40.dp)
                             .background(if (current_location == "OwnedCampsites") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
                         tint = Color.Black
                     )
                 }
-            }
+
             if (true) {
                 IconButton(onClick = { nav_controller.navigate("AdminDashboard") }) {
                     Icon(
@@ -216,9 +215,8 @@ fun topBar(nav_controller: NavController, current_location: String?) {
         "" to "",
         )
     CenterAlignedTopAppBar(
-        title = { if (current_location is String) {
-            Text(display_names[current_location] as String)
-        }
+        title = {
+            Text( display_names[current_location]?:"")
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = COLOURS.LIGHTYELLOW.colour

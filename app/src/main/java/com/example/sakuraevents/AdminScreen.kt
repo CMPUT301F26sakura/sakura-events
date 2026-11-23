@@ -30,8 +30,14 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun AdminScreen(
+    innerPadding: PaddingValues = PaddingValues(0.dp),
+    onManageCampsites: () -> Unit = {},
+    onManageProfiles: () -> Unit = {},
+    onManageImages: () -> Unit = {},
+    onContinueAsEntrant: () -> Unit = {},
+    onContinueAsOwner: () -> Unit = {}
 ) {
-    Column(modifier = Modifier.padding(20.dp)) {
+    Column(modifier = Modifier.padding(innerPadding)) {
         Spacer(modifier =  Modifier.height(16.dp))
         // 2. Simple Row for Back Button + Title
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -46,25 +52,25 @@ fun AdminScreen(
         }
 
         // Admin management options
-        Button(onClick = {  }) {
+        Button(onClick =  onManageCampsites ) {
             Text("Manage Campsites")
         }
 
-        Button(onClick = {  }) {
+        Button(onClick = onManageProfiles ) {
             Text("Manage Profiles")
         }
 
-        Button(onClick = {  }) {
+        Button(onClick = onManageImages ) {
             Text("Manage Images")
         }
         // Admins can also use entrant and campsite owner features.
         Text("Other Roles")
 
-        Button(onClick = {  }) {
+        Button(onClick = onContinueAsEntrant ) {
             Text("Continue as Entrant")
         }
 
-        Button(onClick = {  }) {
+        Button(onClick = onContinueAsOwner ) {
             Text("Continue as Campsite Owner")
         }
     }
@@ -129,7 +135,8 @@ fun AdminCampsiteScreen(
 fun AdminProfileScreen(
     profiles: List<Entrant>,
     on_remove: (Entrant) -> Unit,
-    on_back: () -> Unit
+    on_back: () -> Unit,
+    innerPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     Column(
         modifier = Modifier

@@ -134,15 +134,15 @@ fun ownerCampsiteListContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (!owner_found) {
-                Text("Owner \"$TEST_OWNER_UID\" was not found.")
-                if (show_debug_button) {
-                    Button(onClick = on_create_test_owner) {
-                        Text("Create test owner (debug)")
-                    }
-                }
-                return@Column
-            }
+//            if (!owner_found) {
+//                Text("Owner \"$TEST_OWNER_UID\" was not found.")
+//                if (show_debug_button) {
+//                    Button(onClick = on_create_test_owner) {
+//                        Text("Create test owner (debug)")
+//                    }
+//                }
+//                return@Column
+//            }
 
             Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
                 Text("Register campsite")
