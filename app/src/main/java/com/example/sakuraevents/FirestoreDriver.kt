@@ -63,6 +63,23 @@ class FirestoreDriver {
     private val notifications_ref = db.collection("notifications")
     private val lotteries_ref = db.collection("lotteries")
 
+    private val _owner_campsite_uids = mutableMapOf<String, List<String>>()
+
+    private fun relinkOwnerCampsites() {
+        _owner_campsite_uids.forEach { (ownerUid, campsiteUids) ->
+            val owner = _owners[ownerUid] ?: return@forEach
+            val linked = campsiteUids.mapNotNull { _campsites[it] }.toMutableList()
+            _owners[ownerUid] = CampsiteOwner(
+                UID = owner.UID,
+                role = Role.OWNER,
+                name = owner.getName(),
+                email = owner.getEmail(),
+                phone_number = owner.getPhoneNumber(),
+                _owned_campsites = linked
+            )
+        }
+    }
+
     // Name: Devesh Darji
     // The following function / lines of code were generated / modified by Google Gemini Neon Model.
     // Prompt: "How do I store the logged-in user and owned campsites as Compose state in FirestoreDriver so the UI updates live when roles change?" 2026-11-22
@@ -95,6 +112,54 @@ class FirestoreDriver {
         // This code is adapted from the lab05 listyCity code. It is mostly modified in how it retrieves
         // the info from the document file because parts of our classes don't serialize cleanly.
         //assert(false)
+        entrants_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            _entrants.clear()
+            snapshot?.documents?.forEach { document ->
+                val entrant: Map<String, Any>? = document.data
+                if (entrant != null) {
+                    _entrants[document.id] = Entrant(
+                        UID = document.id,
+                        role = Role.ENTRANT,
+                        name = entrant["name"] as String,
+                        email = entrant["email"] as String,
+                        phone_number = entrant["phone_number"] as String,
+                        _notifications = mutableListOf<Notification>()
+                    )
+                }
+            }
+        }
+
+
+        owners_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            _owners.clear()
+            snapshot?.documents?.forEach { document ->
+                val owner: Map<String, Any>? = document.data
+                if (owner != null) {
+                    val campsiteUids = (owner["owned_campsites"] as List<*>).mapNotNull { it as? String }
+                    _owner_campsite_uids[document.id] = campsiteUids
+                    _owners[document.id] = CampsiteOwner(
+                        UID = document.id,
+                        role = Role.OWNER,
+                        name = owner["name"] as String,
+                        email = owner["email"] as String,
+                        phone_number = owner["phone_number"] as String,
+                        _owned_campsites = campsiteUids.mapNotNull { uid -> _campsites[uid] }.toMutableList()
+                    )
+                }
+            }
+            relinkOwnerCampsites()
+        }
+
+        admins_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
 
         // Name: Devesh Darji
         // The following function / lines of code were generated / modified by Google Gemini Neon Model.
@@ -192,6 +257,7 @@ class FirestoreDriver {
                         // The above is created without values because the reservations themselves handle adding themselves to this list.
                         _ratings = ratings,
                         average_rating = (campsite["average_rating"] as String).toFloat(),
+                        _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { _entrants[it as String] }.toMutableList(),
                         _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { _all_users[it as? String] }.toMutableList(), // Changing to mapNotNull so it won't crash if a campsite loads before users
                         waitlist_capacity = (campsite["waitlist_capacity"] as Long).toInt()
                     )
@@ -200,6 +266,7 @@ class FirestoreDriver {
                     }
                 }
             }
+            relinkOwnerCampsites()
         }
 
         reservations_ref.addSnapshotListener { snapshot, error ->

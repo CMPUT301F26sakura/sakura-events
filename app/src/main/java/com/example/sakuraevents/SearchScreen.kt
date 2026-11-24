@@ -75,7 +75,8 @@ fun searchScreen(
     val location_filters = remember { mutableStateListOf<String>() }
     val selected_locations = remember { mutableStateListOf<String>() }
     // Occupancy filtering variables.
-    val highest_occupancy: Int = campsites.maxOfOrNull { it.getMaxOccupancy() } ?: 1
+    // when campsites is the empty list, set the occupancy to 0
+    val highest_occupancy: Int = campsites.maxOfOrNull { it.getMaxOccupancy() } ?:0
     var occupancy_filter by remember { mutableIntStateOf(0) }
     var selected_occupancy by remember { mutableFloatStateOf(0.0f) }
     // Tag filtering variables.
