@@ -151,7 +151,12 @@ fun ownerCampsiteListContent(
             if (campsites.isEmpty()) {
                 Text("You have no campsites yet.")
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(campsites, key = { it.UID }) { campsite ->
                         campsiteListItem(campsite) { on_campsite_click(campsite) }
                     }

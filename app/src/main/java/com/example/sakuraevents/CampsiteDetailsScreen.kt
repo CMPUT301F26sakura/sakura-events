@@ -29,11 +29,16 @@ import androidx.navigation.NavController
  * @param campsite_uid the UID of the campsite to show.
  */
 @Composable
-fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String) {
+fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String, entrant_uid: String? = null)
+{
+    val entrant = entrant_uid?.let { firestore_driver.entrants[it] }
+        ?: firestore_driver.entrants.values.firstOrNull()
     campsiteDetailsContent(
         campsite = firestore_driver.campsites[campsite_uid],
+        entrant = entrant,
         on_back = { nav_controller.popBackStack() },
-        on_edit = { nav_controller.navigate("CampsiteForm?uid=$campsite_uid") }
+        on_edit = { nav_controller.navigate("CampsiteForm?uid=$campsite_uid") },
+        on_campsite_changed = { updated -> firestore_driver.updateCampsite(updated) }
     )
 }
 
@@ -46,7 +51,11 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
  * @param on_edit what to do when "Edit" is tapped.
  */
 @Composable
-fun campsiteDetailsContent(campsite: Campsite?, on_back: () -> Unit, on_edit: () -> Unit) {
+fun campsiteDetailsContent(campsite: Campsite?,
+                           entrant: Entrant? = null,
+                           on_back: () -> Unit,
+                           on_edit: () -> Unit,
+                           on_campsite_changed: (Campsite) -> Unit = {}) {
     Scaffold(
         topBar = { ownerTopBar("Campsite Details", on_back) },
         containerColor = COLOURS.LIGHTYELLOW.colour
@@ -70,6 +79,17 @@ fun campsiteDetailsContent(campsite: Campsite?, on_back: () -> Unit, on_edit: ()
             detailRow("Max occupancy", campsite.getMaxOccupancy().toString())
             detailRow("Price per night", "$%.2f".format(campsite.getPrice()))
             detailRow("Tags", if (campsite.tags.isEmpty()) "None" else campsite.tags.joinToString(", "))
+
+            CampsiteBookingPeriodField(
+                campsite = campsite,
+                onCampsiteChanged = on_campsite_changed
+            )
+
+            JoinLotterySection(
+                campsite = campsite,
+                entrant = entrant,
+                onCampsiteChanged = on_campsite_changed
+            )
 
             Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
                 Text("Edit")
