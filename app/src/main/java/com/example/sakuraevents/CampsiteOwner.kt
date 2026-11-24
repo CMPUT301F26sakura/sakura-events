@@ -31,7 +31,7 @@ package com.example.sakuraevents
  */
 open class CampsiteOwner(
     UID: String = "",
-    role: Role,
+    role: Role = Role.OWNER,
     name: String,
     email: String,
     phone_number: String,
@@ -50,7 +50,7 @@ open class CampsiteOwner(
      * @return Nothing
      */
     fun addCampsite(campsite: Campsite) {
-        if (!_owned_campsites.any { it === campsite }) {
+        if (!_owned_campsites.any { it === campsite || (campsite.UID.isNotBlank() && it.UID == campsite.UID) }) {
             _owned_campsites.add(campsite)
         }
     }
@@ -63,6 +63,6 @@ open class CampsiteOwner(
      * @return Nothing
      */
     fun removeCampsite(campsite: Campsite) {
-        _owned_campsites.removeIf { it === campsite }
+        _owned_campsites.removeIf { it === campsite || (campsite.UID.isNotBlank() && it.UID == campsite.UID) }
     }
 }

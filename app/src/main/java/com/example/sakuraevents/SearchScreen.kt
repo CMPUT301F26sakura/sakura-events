@@ -119,8 +119,13 @@ fun searchScreen(
                                 Slider(
                                     value = selected_occupancy,
                                     onValueChange = { selected_occupancy = it },
-                                    valueRange = 0f..highest_occupancy.coerceAtLeast(1).toFloat(),
+                                    // Name: Devesh Darji
+                                    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+                                    // Prompt: "How do I prevent SearchScreen from crashing when campsites are empty or still loading?" 2026-11-22
+                                    // Replaced sortedDescending()[0] with maxOfOrNull { it.getMaxOccupancy() } ?: 1 to prevent IndexOutOfBoundsException.
+                                    valueRange = 0f..highest_occupancy.toFloat(),
                                     steps = (highest_occupancy - 1).coerceAtLeast(0),
+                                    // Opening search while campsites are still loaading won't crash with IndexOutOfBoundsException
                                     modifier = Modifier.weight(0.9f)
                                 )
                                 Text(

@@ -36,7 +36,10 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun AdminNavigation(
     firestore_driver: FirestoreDriver,
-    on_exit_admin: () -> Unit // Receives the back function from MainNavigator
+    on_exit_admin: () -> Unit,
+    on_open_entrant: () -> Unit = {},
+    on_open_owner: () -> Unit = {},
+    on_edit_campsite: (Campsite) -> Unit = {}
 ) {
     val nav_controller = rememberNavController()
 
@@ -46,6 +49,14 @@ fun AdminNavigation(
 
         composable("admin") {
             AdminScreen(
+                on_back = on_exit_admin,
+                on_manage_campsites = { nav_controller.navigate("campsites") },
+                on_manage_profiles = { nav_controller.navigate("profiles") },
+                on_manage_images = { nav_controller.navigate("images") },
+                on_continue_as_entrant = on_open_entrant,
+                on_continue_as_owner = on_open_owner,
+                show_entrant_button = firestore_driver.current_user?.has_entrant_access == true,
+                show_owner_button = firestore_driver.current_user?.has_owner_access == true
             )
         }
 
@@ -57,19 +68,23 @@ fun AdminNavigation(
                     // Delete from Firebase
                     firestore_driver.deleteCampsite(campsite)
                 },
-                on_back = { nav_controller.popBackStack() }
+                on_back = { nav_controller.popBackStack() },
+                on_edit = on_edit_campsite
             )
         }
 
         // Profile management page
         composable("profiles") {
             AdminProfileScreen(
-                profiles = firestore_driver.entrants.values.toList(), // Pull real data from driver
+                profiles = firestore_driver.all_users.values.toList(), // Pull real data from driver
                 on_remove = { profile ->
                     // Delete from Firebase
                     firestore_driver.deleteEntrant(profile)
                 },
-                on_back = { nav_controller.popBackStack() }
+                on_back = { nav_controller.popBackStack() },
+                on_change_role = { profile, new_role ->
+                    firestore_driver.updateUserRole(profile, new_role)
+                }
             )
         }
 
