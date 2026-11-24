@@ -59,26 +59,32 @@ fun AdminScreen(
         }
 
         // Admin management options
-        Button(onClick =  onManageCampsites ) {
+        Button(onClick = on_manage_campsites) {
             Text("Manage Campsites")
         }
 
-        Button(onClick = onManageProfiles ) {
+        Button(onClick = on_manage_profiles) {
             Text("Manage Profiles")
         }
 
-        Button(onClick = onManageImages ) {
+        Button(onClick = on_manage_images) {
             Text("Manage Images")
         }
         // Admins can also use entrant and campsite owner features.
-        Text("Other Roles")
-
-        Button(onClick = onContinueAsEntrant ) {
-            Text("Continue as Entrant")
+        if (show_entrant_button || show_owner_button) {
+            Text("Other Roles")
         }
 
-        Button(onClick = onContinueAsOwner ) {
-            Text("Continue as Campsite Owner")
+        if (show_entrant_button) {
+            Button(onClick = on_continue_as_entrant) {
+                Text("Continue as Entrant")
+            }
+        }
+
+        if (show_owner_button) {
+            Button(onClick = on_continue_as_owner) {
+                Text("Continue as Campsite Owner")
+            }
         }
     }
 }
@@ -144,11 +150,12 @@ fun AdminProfileScreen(
     profiles: List<Entrant>,
     on_remove: (Entrant) -> Unit,
     on_back: () -> Unit,
-    innerPadding: PaddingValues = PaddingValues(0.dp)
+    innerPadding: PaddingValues = PaddingValues(0.dp),
     on_change_role: (Entrant, Role) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
+            .padding(innerPadding)
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)

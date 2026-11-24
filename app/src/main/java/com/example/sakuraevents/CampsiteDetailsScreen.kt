@@ -48,10 +48,9 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
     // Added optional show_edit, show_delete, on_delete, entrant, and on_waitlist_changed parameters with default values.
     campsiteDetailsContent(
         campsite = firestore_driver.campsites[campsite_uid],
-        entrant = entrant,
         on_back = { nav_controller.popBackStack() },
         on_edit = { nav_controller.navigate("CampsiteForm?uid=$campsite_uid") },
-        on_campsite_changed = { updated -> firestore_driver.updateCampsite(updated) }
+        on_campsite_changed = { updated -> firestore_driver.updateCampsite(updated) },
         show_edit = can_manage,
         show_delete = current_user?.has_admin_access == true,
         on_delete = { campsite ->
@@ -76,6 +75,7 @@ fun campsiteDetailsContent(
     campsite: Campsite?,
     on_back: () -> Unit,
     on_edit: () -> Unit,
+    on_campsite_changed: (Campsite) -> Unit = {},
     show_edit: Boolean = true,
     show_delete: Boolean = false,
     on_delete: (Campsite) -> Unit = {},
@@ -106,19 +106,21 @@ fun campsiteDetailsContent(
             detailRow("Price per night", "$%.2f".format(campsite.getPrice()))
             detailRow("Tags", if (campsite.tags.isEmpty()) "None" else campsite.tags.joinToString(", "))
 
-            CampsiteBookingPeriodField(
-                campsite = campsite,
-                onCampsiteChanged = on_campsite_changed
-            )
+            if (show_edit) {
+                CampsiteBookingPeriodField(
+                    campsite = campsite,
+                    onCampsiteChanged = on_campsite_changed
+                )
+            }
 
-            JoinLotterySection(
-                campsite = campsite,
-                entrant = entrant,
-                onCampsiteChanged = on_campsite_changed
-            )
+            if (entrant != null) {
+                JoinLotterySection(
+                    campsite = campsite,
+                    entrant = entrant,
+                    onCampsiteChanged = on_campsite_changed
+                )
+            }
 
-            Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
-                Text("Edit")
             // Name: Devesh Darji
             // The following function / lines of code were generated / modified by Google Gemini Neon Model.
             // Prompt: "How do I display Edit/Delete buttons and the entrant WaitlistButton together when a user has multiple roles?" 2026-11-22
@@ -141,13 +143,13 @@ fun campsiteDetailsContent(
                     }
                 }
             }
-            if (entrant != null) {
-                WaitlistButton(
-                    campsite = campsite,
-                    entrant = entrant,
-                    onWaitlistChanged = on_waitlist_changed
-                )
-            }
+//            if (entrant != null) {
+//                WaitlistButton(
+//                    campsite = campsite,
+//                    entrant = entrant,
+//                    onWaitlistChanged = on_waitlist_changed
+//                )
+//            }
         }
     }
 }
