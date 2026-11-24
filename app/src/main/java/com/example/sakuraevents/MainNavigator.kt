@@ -14,9 +14,11 @@ package com.example.sakuraevents
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -36,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,7 +54,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-enum class COLOURS(val colour: Color){
+enum class COLOURS(val colour: Color) {
     LIGHTYELLOW(Color(0xFFEEEEB3)),
     DARKYELLOW(Color(0xFFD8D870)),
     GREEN(Color(0xFF62B266)),
@@ -63,32 +66,76 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     val nav_controller = rememberNavController()
     val nav_current_route by nav_controller.currentBackStackEntryAsState()
     val current_location = nav_current_route?.destination?.route
+    val current_user = firestoreDriver.current_user
+
+    // Name: Devesh Darji
+    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+    // Prompt: "How do I redirect users off restricted screens if their role is turned off in Firebase, and fix duplicate top bars on owner/admin screens?" 2026-11-22
+    // Added a real-time role-gating LaunchedEffect, hid MainNavigator's topBar on screens with their own top bar, and padded nested routes inside NavHost.
+    // Immediately leave a role-restricted screen if the role flag is turned off in Firebase
+    LaunchedEffect(current_user?.role, current_location) {
+        if (current_user == null) return@LaunchedEffect
+        val blocked =
+            (current_location == "Search" && !current_user.has_entrant_access) ||
+                    (current_location == "OwnerCampsites" && !current_user.has_owner_access) ||
+                    (current_location?.startsWith("CampsiteForm") == true && !current_user.has_owner_access && !current_user.has_admin_access) ||
+                    (current_location == "AdminDashboard" && !current_user.has_admin_access)
+        if (blocked) {
+            nav_controller.navigate("Home") { popUpTo("Home") { inclusive = true } }
+        }
+    }
+
+    val has_own_top_bar = current_location in listOf(
+        "AdminDashboard",
+        "OwnerCampsites",
+        "CampsiteDetails/{uid}",
+        "CampsiteDetailScreen/{UID}",
+        "CampsiteForm?uid={uid}"
+    )
 
     Scaffold(
         topBar = {
-            topBar(nav_controller, current_location)
+            if (!has_own_top_bar) {
+                topBar(nav_controller, current_location)
+            }
         },
         bottomBar = {
-            bottomBar(nav_controller, current_location)
+            bottomBar(nav_controller, current_location, current_user)
         },
         containerColor = COLOURS.LIGHTYELLOW.colour
     ) { innerPadding ->
-        //put your US stories code under
+        // put your US stories code under
         NavHost(navController = nav_controller, startDestination = "Home") {
             composable("Home") { homeScreen(modifier, innerPadding) }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
-            composable("Profile") { profileScreen(nav_controller, innerPadding) }
-            composable("AdminDashboard") { AdminScreen() } //firestore_driver = firestoreDriver, on_exit_admin = { nav_controller.popBackStack() }) }
+            composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
+            composable("AdminDashboard") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    AdminNavigation(
+                        firestore_driver = firestoreDriver,
+                        on_exit_admin = { nav_controller.navigate("Home") },
+                        on_open_entrant = { nav_controller.navigate("Search") },
+                        on_open_owner = { nav_controller.navigate("OwnerCampsites") },
+                        on_edit_campsite = { campsite -> nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") }
+                    )
+                }
+            }
 
             // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
             // Owner campsite pages (US 02.01.01 - 02.01.04, US 02.03.01)
-            composable("OwnerCampsites") { ownerCampsiteListScreen(nav_controller, firestoreDriver) }
+            composable("OwnerCampsites") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    ownerCampsiteListScreen(nav_controller, firestoreDriver)
+                }
+            }
             composable("CampsiteDetails/{uid}") { entry ->
-                campsiteDetailsScreen(
-                    nav_controller,
-                    firestoreDriver,
-                    entry.arguments?.getString("uid") ?: ""
-                )
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    campsiteDetailsScreen(
+                        nav_controller,
+                        firestoreDriver,
+                        entry.arguments?.getString("uid") ?: ""
+                    )
+                }
             }
             composable(
                 "CampsiteForm?uid={uid}",
@@ -96,7 +143,9 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
                     type = NavType.StringType; nullable = true; defaultValue = null
                 })
             ) { entry ->
-                campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    campsiteFormScreen(nav_controller, firestoreDriver, entry.arguments?.getString("uid"))
+                }
             }
             /**
              * AI Citation:
@@ -110,18 +159,24 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
              */
             composable(
                 route = "CampsiteDetailScreen/{UID}",
-                arguments = listOf(navArgument("UID") { type = NavType.StringType})) { uid ->
-                val UID = uid.arguments?.getString("UID") as String
-                campsiteDetailsScreen(nav_controller, firestoreDriver, UID) }
+                arguments = listOf(navArgument("UID") { type = NavType.StringType })
+            ) { uid ->
+                val UID = uid.arguments?.getString("UID") ?: ""
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    campsiteDetailsScreen(nav_controller, firestoreDriver, UID)
+                }
+            }
         }
     }
-
 }
-
 
 // The following are common composable elements.
 @Composable
-fun bottomBar(nav_controller: NavController, current_location: String?) {
+// Name: Devesh Darji
+// The following function / lines of code were generated / modified by Google Gemini Neon Model.
+// Prompt: "How do I show and hide bottom bar tabs dynamically based on entrant, owner, and admin role flags?" 2026-11-22
+// Passed current_user into bottomBar and conditionally rendered the Search, My Campsites, and Admin Dashboard tabs using has_*_access flags.
+fun bottomBar(nav_controller: NavController, current_location: String?, current_user: Entrant?) {
     BottomAppBar(
         containerColor = COLOURS.DARKYELLOW.colour
     ) {
@@ -129,27 +184,29 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            IconButton(onClick = { nav_controller.navigate("Home") }) {
+            IconButton(onClick = { nav_controller.navigate("Home") { launchSingleTop = true } }) {
                 Icon(
                     imageVector = Icons.Default.Home,
                     contentDescription = "Home",
                     modifier = Modifier
                         .size(40.dp)
                         .background(if (current_location == "Home") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
-                    tint =  Color.Black
-                )
-            }
-            IconButton(onClick = { nav_controller.navigate("Search") }) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(if (current_location == "Search") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
                     tint = Color.Black
                 )
             }
-            IconButton(onClick = { nav_controller.navigate("Profile") }) {
+            if (current_user?.has_entrant_access == true) {
+                IconButton(onClick = { nav_controller.navigate("Search") { launchSingleTop = true } }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(if (current_location == "Search") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                        tint = Color.Black
+                    )
+                }
+            }
+            IconButton(onClick = { nav_controller.navigate("Profile") { launchSingleTop = true } }) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Profile",
@@ -159,23 +216,23 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
                     tint = Color.Black
                 )
             }
-            if (true) {
-                IconButton(onClick = { }) {
+            if (current_user?.has_owner_access == true) {
+                IconButton(onClick = { nav_controller.navigate("OwnerCampsites") { launchSingleTop = true } }) {
                     Icon(
                         imageVector = Icons.Default.Cabin,
-                        contentDescription = "Profile",
+                        contentDescription = "My Campsites",
                         modifier = Modifier
                             .size(40.dp)
-                            .background(if (current_location == "OwnedCampsites") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
+                            .background(if (current_location == "OwnerCampsites") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
                         tint = Color.Black
                     )
                 }
             }
-            if (true) {
-                IconButton(onClick = { nav_controller.navigate("AdminDashboard") }) {
+            if (current_user?.has_admin_access == true) {
+                IconButton(onClick = { nav_controller.navigate("AdminDashboard") { launchSingleTop = true } }) {
                     Icon(
                         imageVector = Icons.Default.Dashboard,
-                        contentDescription = "Profile",
+                        contentDescription = "Admin Dashboard",
                         modifier = Modifier
                             .size(40.dp)
                             .background(if (current_location == "AdminDashboard") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
@@ -185,8 +242,6 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
             }
         }
     }
-
-
 }
 
 /**
@@ -206,25 +261,31 @@ fun bottomBar(nav_controller: NavController, current_location: String?) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+// Name: Devesh Darji
+// The following function / lines of code were generated / modified by Google Gemini Neon Model.
+// Prompt: "How do I fix topBar crashing when navigating to owner campsite routes?" 2026-11-22
+// Added OwnerCampsites, CampsiteDetails, and CampsiteForm to display_names, made the title lookup null-safe, and hid the back arrow on OwnerCampsites.
 fun topBar(nav_controller: NavController, current_location: String?) {
     val display_names: Map<String, String> = mapOf(
         "Home" to "Home",
         "Search" to "Search",
         "Profile" to "Profile",
+        "OwnerCampsites" to "My Campsites",
         "AdminDashboard" to "Admin Dashboard",
+        "CampsiteDetails/{uid}" to "Campsite Details",
         "CampsiteDetailScreen/{UID}" to "Campsite Details",
-        "" to "",
-        )
+        "CampsiteForm?uid={uid}" to "Campsite Form",
+        "" to ""
+    )
     CenterAlignedTopAppBar(
-        title = { if (current_location is String) {
-            Text(display_names[current_location] as String)
-        }
+        title = {
+            Text(display_names[current_location] ?: "")
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = COLOURS.LIGHTYELLOW.colour
         ),
         navigationIcon = {
-            if (current_location !in listOf("Home", "Search", "Profile", "AdminDashboard")) {
+            if (current_location !in listOf("Home", "Search", "Profile", "OwnerCampsites", "AdminDashboard")) {
                 IconButton(onClick = { nav_controller.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
