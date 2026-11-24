@@ -38,23 +38,20 @@ enum class Role {
  */
 
 open class Entrant (
-    val UID: String= "",
-    private val role: Role = Role.ENTRANT,
+    val UID: String = "",
+    var role: Role = Role.ENTRANT,
     private var name: String,
     private var email: String,
     private var phone_number: String,
     private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
-    private val _notifications: MutableList<Notification> = mutableListOf<Notification>(),
-    var is_entrant: Boolean = (role == Role.ENTRANT),
-    var is_owner: Boolean = (role == Role.OWNER),
-    var is_admin: Boolean = (role == Role.ADMIN)
+    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()
 ) {
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
 
-    val has_entrant_access: Boolean get() = is_entrant || is_admin
-    val has_owner_access: Boolean get() = is_owner || is_admin
-    val has_admin_access: Boolean get() = is_admin
+    val has_entrant_access: Boolean get() = role == Role.ENTRANT || role == Role.ADMIN
+    val has_owner_access: Boolean get() = role == Role.OWNER || role == Role.ADMIN
+    val has_admin_access: Boolean get() = role == Role.ADMIN
     /**
      * Adds a [Reservation] to the entrant's reservation list if not already present.
      * @param reservation The [Reservation] object to add.
@@ -80,11 +77,7 @@ open class Entrant (
      * @return Role name string ("ENTRANT", "OWNER", or "ADMIN").
      */
     fun getRole(): String {
-        val active_roles = mutableListOf<String>()
-        if (is_entrant) active_roles.add("ENTRANT")
-        if (is_owner) active_roles.add("OWNER")
-        if (is_admin) active_roles.add("ADMIN")
-        return if (active_roles.isEmpty()) role.toString() else active_roles.joinToString(", ")
+        return role.name
     }
     /**
      * Returns the entrant's full name.

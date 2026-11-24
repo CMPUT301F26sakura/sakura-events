@@ -73,7 +73,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     // Prompt: "How do I redirect users off restricted screens if their role is turned off in Firebase, and fix duplicate top bars on owner/admin screens?" 2026-11-22
     // Added a real-time role-gating LaunchedEffect, hid MainNavigator's topBar on screens with their own top bar, and padded nested routes inside NavHost.
     // Immediately leave a role-restricted screen if the role flag is turned off in Firebase
-    LaunchedEffect(current_user?.is_entrant, current_user?.is_owner, current_user?.is_admin, current_location) {
+    LaunchedEffect(current_user?.role, current_location) {
         if (current_user == null) return@LaunchedEffect
         val blocked =
             (current_location == "Search" && !current_user.has_entrant_access) ||

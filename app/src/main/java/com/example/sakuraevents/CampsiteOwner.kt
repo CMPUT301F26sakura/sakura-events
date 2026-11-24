@@ -37,11 +37,8 @@ open class CampsiteOwner(
     phone_number: String,
     _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
     _notifications: MutableList<Notification> = mutableListOf<Notification>(),
-    private var _owned_campsites: MutableList<Campsite> = mutableListOf(),
-    is_entrant: Boolean = (role == Role.ENTRANT),
-    is_owner: Boolean = (role == Role.OWNER),
-    is_admin: Boolean = (role == Role.ADMIN),
-): Entrant(UID, role, name, email, phone_number, _reservations, _notifications, is_entrant, is_owner, is_admin) {
+    private var _owned_campsites: MutableList<Campsite> = mutableListOf()
+): Entrant(UID, role, name, email, phone_number, _reservations, _notifications) {
 
     val owned_campsites: List<Campsite> get() = _owned_campsites
 

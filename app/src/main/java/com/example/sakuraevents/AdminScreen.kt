@@ -134,29 +134,38 @@ fun AdminCampsiteScreen(
 fun AdminProfileScreen(
     profiles: List<Entrant>,
     on_remove: (Entrant) -> Unit,
-    on_back: () -> Unit
+    on_back: () -> Unit,
+    on_change_role: (Entrant, Role) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
-            .statusBarsPadding()
             .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(onClick = on_back) {
             Text("Back")
         }
 
-        Text("Manage Profiles")
+        Text("Manage Profiles", style = MaterialTheme.typography.headlineSmall)
 
         // Display the details of each user.
         profiles.forEach { profile ->
-            Text(profile.getName())
+            Text(profile.getName(), style = MaterialTheme.typography.titleMedium)
             Text(profile.getEmail())
             Text("Role: ${profile.getRole()}")
 
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { on_change_role(profile, Role.ENTRANT) }) { Text("Entrant") }
+                Button(onClick = { on_change_role(profile, Role.OWNER) }) { Text("Owner") }
+                Button(onClick = { on_change_role(profile, Role.ADMIN) }) { Text("Admin") }
+            }
+
             // Remove the selected profile from the list.
-            Button(onClick = {
-                on_remove(profile)
-            }) {
+            Button(
+                onClick = { on_remove(profile) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
                 Text("Remove")
             }
         }

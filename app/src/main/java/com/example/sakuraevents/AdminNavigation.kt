@@ -81,7 +81,10 @@ fun AdminNavigation(
                     // Delete from Firebase
                     firestore_driver.deleteEntrant(profile)
                 },
-                on_back = { nav_controller.popBackStack() }
+                on_back = { nav_controller.popBackStack() },
+                on_change_role = { profile, new_role ->
+                    firestore_driver.updateUserRole(profile, new_role)
+                }
             )
         }
 

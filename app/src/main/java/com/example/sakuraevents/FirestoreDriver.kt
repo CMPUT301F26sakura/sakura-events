@@ -112,9 +112,7 @@ class FirestoreDriver {
                         "name" to "New User",
                         "email" to "",
                         "phone_number" to "",
-                        "isEntrant" to true,
-                        "isOwner" to false,
-                        "isAdmin" to false,
+                        "role" to Role.ENTRANT.name,
                         "owned_campsites" to emptyList<String>(),
                         "notifications" to emptyList<String>()
                     ))
@@ -132,26 +130,22 @@ class FirestoreDriver {
 
             snapshot?.documents?.forEach { document ->
                 val data = document.data ?: return@forEach
-                val is_entrant = data["isEntrant"] as? Boolean ?: true
-                val is_owner = data["isOwner"] as? Boolean ?: false
-                val is_admin = data["isAdmin"] as? Boolean ?: false
+                val role_string = data["role"] as? String ?: Role.ENTRANT.name
+                val parsed_role = try {
+                    Role.valueOf(role_string.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    Role.ENTRANT
+                }
                 val owned_uids = (data["owned_campsites"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
                 _user_owned_campsite_uids[document.id] = owned_uids
 
                 val user = Admin(
                     UID = document.id,
-                    role = when {
-                        is_admin -> Role.ADMIN
-                        is_owner -> Role.OWNER
-                        else -> Role.ENTRANT
-                    },
+                    role = parsed_role,
                     name = data["name"] as? String ?: "",
                     email = data["email"] as? String ?: "",
                     phone_number = data["phone_number"] as? String ?: "",
-                    _owned_campsites = owned_uids.mapNotNull { _campsites[it] }.toMutableList(),
-                    is_entrant = is_entrant,
-                    is_owner = is_owner,
-                    is_admin = is_admin
+                    _owned_campsites = owned_uids.mapNotNull { _campsites[it] }.toMutableList()
                 )
 
                 _all_users[document.id] = user
@@ -339,13 +333,16 @@ class FirestoreDriver {
             "name" to user.getName(),
             "email" to user.getEmail(),
             "phone_number" to user.getPhoneNumber(),
-            "isEntrant" to user.is_entrant,
-            "isOwner" to user.is_owner,
-            "isAdmin" to user.is_admin,
+            "role" to user.getRole(),
             "notifications" to user.notifications.map { it.UID },
             "owned_campsites" to owned_uids
         )
         return users_ref.document(uid).set(firestore_format)
+    }
+
+    fun updateUserRole(user: Entrant, new_role: Role): Task<Void> {
+        user.role = new_role
+        return saveUser(user)
     }
 
     fun addEntrant(entrant: Entrant): Task<Void> {

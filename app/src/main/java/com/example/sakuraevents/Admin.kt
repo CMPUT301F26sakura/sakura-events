@@ -25,10 +25,7 @@ class Admin (
     phone_number: String,
     _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
     _notifications: MutableList<Notification> = mutableListOf<Notification>(),
-    _owned_campsites: MutableList<Campsite> = mutableListOf(),
-    is_entrant: Boolean = (role == Role.ENTRANT),
-    is_owner: Boolean = (role == Role.OWNER),
-    is_admin: Boolean = (role == Role.ADMIN)
-): CampsiteOwner(UID, role, name, email, phone_number, _reservations, _notifications, _owned_campsites, is_entrant, is_owner, is_admin) {
+    _owned_campsites: MutableList<Campsite> = mutableListOf()
+): CampsiteOwner(UID, role, name, email, phone_number, _reservations, _notifications, _owned_campsites) {
 
 }
