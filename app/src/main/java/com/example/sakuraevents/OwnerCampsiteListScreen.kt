@@ -144,15 +144,15 @@ fun ownerCampsiteListContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (!owner_found) {
-                Text("Owner \"$TEST_OWNER_UID\" was not found.")
-                if (show_debug_button) {
-                    Button(onClick = on_create_test_owner) {
-                        Text("Create test owner (debug)")
-                    }
-                }
-                return@Column
-            }
+//            if (!owner_found) {
+//                Text("Owner \"$TEST_OWNER_UID\" was not found.")
+//                if (show_debug_button) {
+//                    Button(onClick = on_create_test_owner) {
+//                        Text("Create test owner (debug)")
+//                    }
+//                }
+//                return@Column
+//            }
 
             Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
                 Text("Register campsite")
@@ -161,7 +161,12 @@ fun ownerCampsiteListContent(
             if (campsites.isEmpty()) {
                 Text("You have no campsites yet.")
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(campsites, key = { it.UID }) { campsite ->
                         val delete_action: (() -> Unit)? = if (show_delete) ({ on_delete(campsite) }) else null
                         campsiteListItem(
