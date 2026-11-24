@@ -19,7 +19,7 @@ import com.google.android.gms.tasks.Task
  */
 class Admin (
     UID: String = "",
-    role: Role,
+    role: Role = Role.ADMIN,
     name: String,
     email: String,
     phone_number: String,
