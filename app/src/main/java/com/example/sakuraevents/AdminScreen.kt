@@ -58,18 +58,27 @@ fun AdminScreen(
             Text("Admin Dashboard", style = MaterialTheme.typography.headlineMedium)
         }
 
-        Button(onClick = on_manage_campsites) { Text("Manage Campsites") }
-        Button(onClick = on_manage_profiles) { Text("Manage Profiles") }
-        Button(onClick = on_manage_images) { Text("Manage Images") }
+        // Admin management options
+        Button(onClick =  onManageCampsites ) {
+            Text("Manage Campsites")
+        }
 
-        if (show_entrant_button || show_owner_button) {
-            Text("Other Roles")
+        Button(onClick = onManageProfiles ) {
+            Text("Manage Profiles")
         }
-        if (show_entrant_button) {
-            Button(onClick = on_continue_as_entrant) { Text("Continue as Entrant") }
+
+        Button(onClick = onManageImages ) {
+            Text("Manage Images")
         }
-        if (show_owner_button) {
-            Button(onClick = on_continue_as_owner) { Text("Continue as Campsite Owner") }
+        // Admins can also use entrant and campsite owner features.
+        Text("Other Roles")
+
+        Button(onClick = onContinueAsEntrant ) {
+            Text("Continue as Entrant")
+        }
+
+        Button(onClick = onContinueAsOwner ) {
+            Text("Continue as Campsite Owner")
         }
     }
 }
@@ -135,6 +144,7 @@ fun AdminProfileScreen(
     profiles: List<Entrant>,
     on_remove: (Entrant) -> Unit,
     on_back: () -> Unit,
+    innerPadding: PaddingValues = PaddingValues(0.dp)
     on_change_role: (Entrant, Role) -> Unit = { _, _ -> }
 ) {
     Column(
