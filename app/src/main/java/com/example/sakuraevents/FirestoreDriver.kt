@@ -42,7 +42,10 @@ class FirestoreDriver {
     private val _entrants = mutableStateMapOf<String, Entrant>()
     private val _owners = mutableStateMapOf<String, CampsiteOwner>()
     private val _admins = mutableStateMapOf<String, Admin>()
-    //private val _notifications = mutableMapOf<String, Notification>()
+    // The notifications lines below were written with help from Anthropic, Claude, "Save and load notifications in Firestore", 2026-11-25
+    private val _notifications = mutableStateMapOf<String, Notification>()
+    // Raw notification documents, kept so notifications can be rebuilt once users and campsites have loaded.
+    private val _notification_docs = mutableMapOf<String, Map<String, Any>>()
     //private val _lotteries = mutableMapOf<String, Lottery>()
 
     val reservations: Map<String, Reservation> get() = _reservations
@@ -50,7 +53,7 @@ class FirestoreDriver {
     val entrants: Map<String, Entrant> get() = _entrants
     val owners: Map<String, CampsiteOwner> get() = _owners
     val admins: Map<String, Admin> get() = _admins
-    //val notifications: Map<String, Notification> get() = _notifications
+    val notifications: Map<String, Notification> get() = _notifications
     // val lotteries: Map<String, Lottery> get() = _lotteries
 
     val db = Firebase.firestore
@@ -114,7 +117,8 @@ class FirestoreDriver {
                         "phone_number" to "",
                         "role" to Role.ENTRANT.name,
                         "owned_campsites" to emptyList<String>(),
-                        "notifications" to emptyList<String>()
+                        "notifications" to emptyList<String>(),
+                        "notifications_enabled" to true
                     ))
                 }
             }
@@ -148,6 +152,8 @@ class FirestoreDriver {
                     _owned_campsites = owned_uids.mapNotNull { _campsites[it] }.toMutableList()
                 )
 
+                user.setNotificationsEnabled(data["notifications_enabled"] as? Boolean ?: true)
+
                 _all_users[document.id] = user
                 if (user.has_entrant_access) _entrants[document.id] = user
                 if (user.has_owner_access) _owners[document.id] = user
@@ -155,6 +161,7 @@ class FirestoreDriver {
             }
 
             current_user = current_user_uid?.let { _all_users[it] }
+            rebuildNotifications()
         }
 
         campsites_ref.addSnapshotListener { snapshot, error ->
@@ -200,6 +207,20 @@ class FirestoreDriver {
                     }
                 }
             }
+            rebuildNotifications()
+        }
+
+        // Loads notifications (US 01.03.01, US 01.03.02, US 02.10.01, US 02.10.02).
+        notifications_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            _notification_docs.clear()
+            snapshot?.documents?.forEach { document ->
+                val data = document.data ?: return@forEach
+                _notification_docs[document.id] = data
+            }
+            rebuildNotifications()
         }
 
         reservations_ref.addSnapshotListener { snapshot, error ->
@@ -335,9 +356,84 @@ class FirestoreDriver {
             "phone_number" to user.getPhoneNumber(),
             "role" to user.getRole(),
             "notifications" to user.notifications.map { it.UID },
-            "owned_campsites" to owned_uids
+            "owned_campsites" to owned_uids,
+            "notifications_enabled" to user.getNotificationsEnabled()
         )
         return users_ref.document(uid).set(firestore_format)
+    }
+
+    // The functions below were written with help from Anthropic, Claude, "Save and load notifications in Firestore", 2026-11-25
+    /**
+     * Turns the stored notification documents into Notification objects. Called whenever users,
+     * campsites or notifications change, because a notification needs its sender, campsite and
+     * recipients to be loaded first. Notifications whose sender or campsite no longer exists are skipped.
+     */
+    private fun rebuildNotifications() {
+        _notifications.clear()
+        _notification_docs.forEach { (uid, data) ->
+            val sender = _all_users[data["sender"] as? String ?: ""] ?: return@forEach
+            val campsite = _campsites[data["campsite"] as? String ?: ""] ?: return@forEach
+            val recipients = (data["recipients"] as? List<*>)
+                ?.mapNotNull { (it as? String)?.let { recipient_uid -> _all_users[recipient_uid] } } ?: emptyList()
+            val type = try {
+                NotificationType.valueOf(data["type"] as? String ?: "")
+            } catch (e: IllegalArgumentException) {
+                NotificationType.OWNER_MESSAGE
+            }
+            _notifications[uid] = Notification(
+                UID = uid,
+                notification_type = type,
+                sender = sender,
+                campsite = campsite,
+                title = data["title"] as? String ?: "",
+                message = data["message"] as? String ?: "",
+                _recipients = recipients,
+                date_sent = data["date_sent"] as? String ?: ""
+            )
+        }
+    }
+
+    /**
+     * Saves a notification to Firestore (US 02.10.01). Recipients, sender and campsite are stored by UID.
+     *
+     * @param notification the Notification to save.
+     * @return the Firestore Task for the save.
+     */
+    fun addNotification(notification: Notification): Task<Void> {
+        val UID: String = if (notification.UID.isNotBlank()) notification.UID else generateNextUid(_notification_docs.keys)
+        val firestore_format = mapOf<String, Any>(
+            "type" to notification.getNotificationType().name,
+            "sender" to notification.getSender().UID,
+            "campsite" to notification.getCampsite().UID,
+            "title" to notification.getTitle(),
+            "message" to notification.getMessage(),
+            "recipients" to notification.recipients.map { it.UID },
+            "date_sent" to notification.getDateSent())
+        return notifications_ref.document(UID).set(firestore_format)
+    }
+
+    /**
+     * Returns the notifications a user received, newest first (US 01.03.01, US 01.03.02).
+     *
+     * @param uid the user's UID.
+     * @return the notifications that list this user as a recipient.
+     */
+    fun getNotificationsFor(uid: String): List<Notification> {
+        return _notifications.values
+            .filter { notification -> notification.recipients.any { it.UID == uid } }
+            .sortedByDescending { it.UID.toIntOrNull() ?: 0 }
+    }
+
+    /**
+     * Returns the notifications a campsite owner sent, newest first (US 02.10.02).
+     *
+     * @param uid the owner's UID.
+     * @return the notifications this user sent.
+     */
+    fun getNotificationsSentBy(uid: String): List<Notification> {
+        return _notifications.values
+            .filter { it.getSender().UID == uid }
+            .sortedByDescending { it.UID.toIntOrNull() ?: 0 }
     }
 
     fun updateUserRole(user: Entrant, new_role: Role): Task<Void> {

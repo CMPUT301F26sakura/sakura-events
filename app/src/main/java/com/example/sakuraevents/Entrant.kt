@@ -52,6 +52,26 @@ open class Entrant (
     val has_entrant_access: Boolean get() = role == Role.ENTRANT || role == Role.ADMIN
     val has_owner_access: Boolean get() = role == Role.OWNER || role == Role.ADMIN
     val has_admin_access: Boolean get() = role == Role.ADMIN
+
+    // The notification opt-out lines below were written with help from Anthropic, Claude, "Notification opt-out setting for Entrant", 2026-11-25
+    // Whether this user wants to receive notifications (US 01.10.01). Saved in Firestore by FirestoreDriver.
+    private var notifications_enabled: Boolean = true
+
+    /**
+     * Returns whether this user receives notifications (US 01.10.01).
+     * @return true if notifications are on, false if the user opted out.
+     */
+    fun getNotificationsEnabled(): Boolean {
+        return notifications_enabled
+    }
+
+    /**
+     * Turns notifications on or off for this user (US 01.10.01).
+     * @param enabled true to receive notifications, false to opt out.
+     */
+    fun setNotificationsEnabled(enabled: Boolean) {
+        notifications_enabled = enabled
+    }
     /**
      * Adds a [Reservation] to the entrant's reservation list if not already present.
      * @param reservation The [Reservation] object to add.

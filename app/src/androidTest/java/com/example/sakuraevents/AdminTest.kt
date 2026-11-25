@@ -166,11 +166,12 @@ class AdminTest {
         compose_rule.setContent {
             AdminScreen(
                 on_back = {},
-                on_campsites = {},
-                on_profiles = {},
-                on_images = {},
-                on_entrant = {},
-                on_owner = {}
+                // Parameter names updated to match AdminScreen with help from Anthropic, Claude, "Fix AdminTest compile errors", 2026-11-25
+                on_manage_campsites = {},
+                on_manage_profiles = {},
+                on_manage_images = {},
+                on_continue_as_entrant = {},
+                on_continue_as_owner = {}
             )
         }
 
