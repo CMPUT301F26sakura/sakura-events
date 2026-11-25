@@ -33,6 +33,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.ButtonDefaults
 
 // TODO: Replace with the logged-in owner's UID once sign-in is implemented.
 /** The UID of the owner whose campsites these screens show, until there is a login. */
@@ -74,11 +76,12 @@ fun ownerTopBar(title: String, on_back: () -> Unit) {
  */
 @Composable
 fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: FirestoreDriver) {
-    val owner = firestore_driver.owners[TEST_OWNER_UID]
+    val owner_uid = firestore_driver.current_user_uid ?: TEST_OWNER_UID
+    val owner = firestore_driver.owners[owner_uid]
     // True for builds run from Android Studio, false for release builds.
     val is_debug_build = (LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     // Look each campsite up by UID so the list always shows the latest loaded values.
-    val owned_campsites = owner?.owned_campsites?.mapNotNull { firestore_driver.campsites[it.UID] } ?: emptyList()
+    val owned_campsites = firestore_driver.getOwnedCampsites(owner_uid)
 
     ownerCampsiteListContent(
         owner_found = owner != null,
@@ -88,7 +91,7 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
         on_create_test_owner = {
             firestore_driver.updateOwner(
                 CampsiteOwner(
-                    UID = TEST_OWNER_UID,
+                    UID = owner_uid,
                     role = Role.OWNER,
                     name = "Test Owner",
                     email = "test.owner@example.com",
@@ -97,7 +100,11 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
             )
         },
         on_register = { nav_controller.navigate("CampsiteForm") },
-        on_campsite_click = { campsite -> nav_controller.navigate("CampsiteDetails/${campsite.UID}") }
+        on_campsite_click = { campsite -> nav_controller.navigate("CampsiteDetails/${campsite.UID}") },
+        on_edit = { campsite -> nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") },
+        on_delete = { campsite -> firestore_driver.deleteCampsite(campsite) },
+        show_delete = firestore_driver.current_user?.has_admin_access == true
+
     )
 }
 
@@ -121,7 +128,10 @@ fun ownerCampsiteListContent(
     on_back: () -> Unit,
     on_create_test_owner: () -> Unit,
     on_register: () -> Unit,
-    on_campsite_click: (Campsite) -> Unit
+    on_campsite_click: (Campsite) -> Unit,
+    on_edit: (Campsite) -> Unit = {},
+    on_delete: (Campsite) -> Unit = {},
+    show_delete: Boolean = false
 ) {
     Scaffold(
         topBar = { ownerTopBar("My Campsites", on_back) },
@@ -134,15 +144,15 @@ fun ownerCampsiteListContent(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (!owner_found) {
-                Text("Owner \"$TEST_OWNER_UID\" was not found.")
-                if (show_debug_button) {
-                    Button(onClick = on_create_test_owner) {
-                        Text("Create test owner (debug)")
-                    }
-                }
-                return@Column
-            }
+//            if (!owner_found) {
+//                Text("Owner \"$TEST_OWNER_UID\" was not found.")
+//                if (show_debug_button) {
+//                    Button(onClick = on_create_test_owner) {
+//                        Text("Create test owner (debug)")
+//                    }
+//                }
+//                return@Column
+//            }
 
             Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
                 Text("Register campsite")
@@ -151,9 +161,20 @@ fun ownerCampsiteListContent(
             if (campsites.isEmpty()) {
                 Text("You have no campsites yet.")
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(campsites, key = { it.UID }) { campsite ->
-                        campsiteListItem(campsite) { on_campsite_click(campsite) }
+                        val delete_action: (() -> Unit)? = if (show_delete) ({ on_delete(campsite) }) else null
+                        campsiteListItem(
+                            campsite = campsite,
+                            on_click = { on_campsite_click(campsite) },
+                            on_edit = { on_edit(campsite) },
+                            on_delete = delete_action
+                        )
                     }
                 }
             }
@@ -168,7 +189,16 @@ fun ownerCampsiteListContent(
  * @param on_click what to do when the row is tapped.
  */
 @Composable
-fun campsiteListItem(campsite: Campsite, on_click: () -> Unit) {
+// Name: Devesh Darji
+// The following function / lines of code were generated / modified by Google Gemini Neon Model.
+// Prompt: "How do I add Edit and optional Delete buttons to each card in campsiteListItem?" 2026-11-22
+// Added optional on_edit and on_delete callbacks to render Edit and Delete buttons inside the campsite card.
+fun campsiteListItem(
+    campsite: Campsite,
+    on_click: () -> Unit,
+    on_edit: (() -> Unit)? = null,
+    on_delete: (() -> Unit)? = null
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -176,10 +206,27 @@ fun campsiteListItem(campsite: Campsite, on_click: () -> Unit) {
             .clickable(onClick = on_click),
         colors = CardDefaults.cardColors(containerColor = COLOURS.DARKYELLOW.colour)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(text = campsite.getName(), fontSize = 20.sp)
             Text(text = campsite.getLocation())
             Text(text = "$%.2f per night".format(campsite.getPrice()))
+            if (on_edit != null || on_delete != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (on_edit != null) {
+                        Button(onClick = on_edit) {
+                            Text("Edit")
+                        }
+                    }
+                    if (on_delete != null) {
+                        Button(
+                            onClick = on_delete,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        ) {
+                            Text("Delete")
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -75,7 +75,8 @@ fun searchScreen(
     val location_filters = remember { mutableStateListOf<String>() }
     val selected_locations = remember { mutableStateListOf<String>() }
     // Occupancy filtering variables.
-    val highest_occupancy: Int = (campsites.map { it.getMaxOccupancy() }).sortedDescending()[0]
+    // when campsites is the empty list, set the occupancy to 0
+    val highest_occupancy: Int = campsites.maxOfOrNull { it.getMaxOccupancy() } ?:0
     var occupancy_filter by remember { mutableIntStateOf(0) }
     var selected_occupancy by remember { mutableFloatStateOf(0.0f) }
     // Tag filtering variables.
@@ -118,8 +119,13 @@ fun searchScreen(
                                 Slider(
                                     value = selected_occupancy,
                                     onValueChange = { selected_occupancy = it },
+                                    // Name: Devesh Darji
+                                    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+                                    // Prompt: "How do I prevent SearchScreen from crashing when campsites are empty or still loading?" 2026-11-22
+                                    // Replaced sortedDescending()[0] with maxOfOrNull { it.getMaxOccupancy() } ?: 1 to prevent IndexOutOfBoundsException.
                                     valueRange = 0f..highest_occupancy.toFloat(),
-                                    steps = highest_occupancy - 1,
+                                    steps = (highest_occupancy - 1).coerceAtLeast(0),
+                                    // Opening search while campsites are still loaading won't crash with IndexOutOfBoundsException
                                     modifier = Modifier.weight(0.9f)
                                 )
                                 Text(

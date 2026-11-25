@@ -41,14 +41,14 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun profileScreen(nav_controller: NavController, innerPadding: PaddingValues){
+fun profileScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, innerPadding: PaddingValues){
 
     /**
      * display the select icon with different color to distinguish
      * one variable to track the current route
      */
         //put your US stories code under
-
+    val current_user = firestore_driver.current_user
 
     Box(
         modifier = Modifier
@@ -58,8 +58,13 @@ fun profileScreen(nav_controller: NavController, innerPadding: PaddingValues){
     ) {
         // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
-                Text("My Campsites")
+            Text("Device UID: ${firestore_driver.current_user_uid ?: "Signing in..."}")
+            Text("Roles: ${current_user?.getRole() ?: "Loading..."}")
+            Spacer(modifier = Modifier.height(16.dp))
+            if (current_user?.has_owner_access == true) {
+                Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
+                    Text("My Campsites")
+                }
             }
         }
     }

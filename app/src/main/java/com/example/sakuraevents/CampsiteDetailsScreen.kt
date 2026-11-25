@@ -19,6 +19,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color
 
 /**
  * The campsite details page used by the app. Looks the campsite up in FirestoreDriver and
@@ -30,10 +33,32 @@ import androidx.navigation.NavController
  */
 @Composable
 fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String) {
+    // Name: Devesh Darji
+    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+    // Prompt: "How do I gate Edit, Delete, and Waitlist controls on CampsiteDetailsScreen by user role so owners edit their own sites, admins manage all sites, and entrants join waitlists?" 2026-11-22
+    // Computed role-based permissions using has_owner_access, has_admin_access, and has_entrant_access, restricting Delete to admins only.
+    val current_user = firestore_driver.current_user
+    val is_owner_of_site = current_user?.has_owner_access == true &&
+            firestore_driver.getOwnedCampsites(current_user.UID).any { it.UID == campsite_uid }
+    val can_manage = is_owner_of_site || current_user?.has_admin_access == true
+
+    // Name: Devesh Darji
+    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+    // Prompt: "How do I add role-gated Edit, Delete, and Waitlist parameters to campsiteDetailsContent without breaking existing tests?" 2026-11-22
+    // Added optional show_edit, show_delete, on_delete, entrant, and on_waitlist_changed parameters with default values.
     campsiteDetailsContent(
         campsite = firestore_driver.campsites[campsite_uid],
         on_back = { nav_controller.popBackStack() },
-        on_edit = { nav_controller.navigate("CampsiteForm?uid=$campsite_uid") }
+        on_edit = { nav_controller.navigate("CampsiteForm?uid=$campsite_uid") },
+        on_campsite_changed = { updated -> firestore_driver.updateCampsite(updated) },
+        show_edit = can_manage,
+        show_delete = current_user?.has_admin_access == true,
+        on_delete = { campsite ->
+            firestore_driver.deleteCampsite(campsite)
+            nav_controller.popBackStack()
+        },
+        entrant = if (current_user?.has_entrant_access == true) current_user else null,
+        on_waitlist_changed = { firestore_driver.updateCampsite(it) }
     )
 }
 
@@ -46,7 +71,17 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
  * @param on_edit what to do when "Edit" is tapped.
  */
 @Composable
-fun campsiteDetailsContent(campsite: Campsite?, on_back: () -> Unit, on_edit: () -> Unit) {
+fun campsiteDetailsContent(
+    campsite: Campsite?,
+    on_back: () -> Unit,
+    on_edit: () -> Unit,
+    on_campsite_changed: (Campsite) -> Unit = {},
+    show_edit: Boolean = true,
+    show_delete: Boolean = false,
+    on_delete: (Campsite) -> Unit = {},
+    entrant: Entrant? = null,
+    on_waitlist_changed: (Campsite) -> Unit = {}
+) {
     Scaffold(
         topBar = { ownerTopBar("Campsite Details", on_back) },
         containerColor = COLOURS.LIGHTYELLOW.colour
@@ -71,9 +106,50 @@ fun campsiteDetailsContent(campsite: Campsite?, on_back: () -> Unit, on_edit: ()
             detailRow("Price per night", "$%.2f".format(campsite.getPrice()))
             detailRow("Tags", if (campsite.tags.isEmpty()) "None" else campsite.tags.joinToString(", "))
 
-            Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
-                Text("Edit")
+            if (show_edit) {
+                CampsiteBookingPeriodField(
+                    campsite = campsite,
+                    onCampsiteChanged = on_campsite_changed
+                )
             }
+
+            if (entrant != null) {
+                JoinLotterySection(
+                    campsite = campsite,
+                    entrant = entrant,
+                    onCampsiteChanged = on_campsite_changed
+                )
+            }
+
+            // Name: Devesh Darji
+            // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+            // Prompt: "How do I display Edit/Delete buttons and the entrant WaitlistButton together when a user has multiple roles?" 2026-11-22
+            // Conditionally rendered the Edit and Delete buttons in a Row and displayed WaitlistButton whenever entrant access is granted.
+            if (show_edit || show_delete) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (show_edit) {
+                        Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
+                            Text("Edit")
+                        }
+                    }
+                    if (show_delete) {
+                        Button(
+                            onClick = { on_delete(campsite) },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            modifier = Modifier.testTag("deleteCampsiteButton")
+                        ) {
+                            Text("Delete")
+                        }
+                    }
+                }
+            }
+//            if (entrant != null) {
+//                WaitlistButton(
+//                    campsite = campsite,
+//                    entrant = entrant,
+//                    onWaitlistChanged = on_waitlist_changed
+//                )
+//            }
         }
     }
 }

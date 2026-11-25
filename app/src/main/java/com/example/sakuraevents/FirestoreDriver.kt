@@ -24,6 +24,9 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 
 /**
@@ -36,9 +39,9 @@ class FirestoreDriver {
     // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
     private val _campsites = mutableStateMapOf<String, Campsite>()
-    private val _entrants = mutableMapOf<String, Entrant>()
+    private val _entrants = mutableStateMapOf<String, Entrant>()
     private val _owners = mutableStateMapOf<String, CampsiteOwner>()
-    private val _admins = mutableMapOf<String, Admin>()
+    private val _admins = mutableStateMapOf<String, Admin>()
     //private val _notifications = mutableMapOf<String, Notification>()
     //private val _lotteries = mutableMapOf<String, Lottery>()
 
@@ -51,7 +54,7 @@ class FirestoreDriver {
     // val lotteries: Map<String, Lottery> get() = _lotteries
 
     val db = Firebase.firestore
-    private val auth = FirebaseAuth.getInstance().signInAnonymously()
+    // private val auth = FirebaseAuth.getInstance().signInAnonymously()
     private val reservations_ref = db.collection("reservations")
     private val campsites_ref = db.collection("campsites")
     private val entrants_ref = db.collection("entrants")
@@ -59,6 +62,26 @@ class FirestoreDriver {
     private val admins_ref = db.collection("admins")
     private val notifications_ref = db.collection("notifications")
     private val lotteries_ref = db.collection("lotteries")
+
+    // Name: Devesh Darji
+    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+    // Prompt: "How do I store the logged-in user and owned campsites as Compose state in FirestoreDriver so the UI updates live when roles change?" 2026-11-22
+    // Added Compose-observable maps/state (_all_users, _user_owned_campsite_uids, current_user_uid, current_user, users_ref) and getOwnedCampsites().
+    private val _all_users = mutableStateMapOf<String, Admin>()
+    private val _user_owned_campsite_uids = mutableStateMapOf<String, List<String>>()
+
+    val all_users: Map<String, Admin> get() = _all_users
+    fun getOwnedCampsites(uid: String?): List<Campsite> {
+        if (uid == null) return emptyList()
+        return _user_owned_campsite_uids[uid]?.mapNotNull { _campsites[it] } ?: emptyList()
+    }
+
+    var current_user_uid by mutableStateOf<String?>(null)
+        private set
+    var current_user by mutableStateOf<Admin?>(null)
+        private set
+
+    private val users_ref = db.collection("users")
 
 
     /**
@@ -73,67 +96,65 @@ class FirestoreDriver {
         // the info from the document file because parts of our classes don't serialize cleanly.
         //assert(false)
 
+        // Name: Devesh Darji
+        // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+        // Prompt: "How do I use Firebase Anonymous Auth with a single users collection and boolean role flags, and prevent snapshot listener crashes?" 2026-11-22
+        // Implemented anonymous sign-in with automatic default entrant creation, a unified users_ref listener populating role maps via has_*_access, and null-safe lookups in campsites_ref and reservations_ref.
+        FirebaseAuth.getInstance().signInAnonymously().addOnSuccessListener { result ->
+            val uid = result.user?.uid ?: return@addOnSuccessListener
+            current_user_uid = uid
+            current_user = _all_users[uid]
 
-        entrants_ref.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
+            val user_doc = users_ref.document(uid)
+            user_doc.get().addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    user_doc.set(mapOf(
+                        "name" to "New User",
+                        "email" to "",
+                        "phone_number" to "",
+                        "role" to Role.ENTRANT.name,
+                        "owned_campsites" to emptyList<String>(),
+                        "notifications" to emptyList<String>()
+                    ))
+                }
             }
+        }
+
+        users_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+            _all_users.clear()
             _entrants.clear()
-            snapshot?.documents?.forEach() { document ->
-                val entrant: Map<String, Any>? = document.data
-                if (entrant != null) {
-                    _entrants[document.id] = Entrant(
-                        UID = document.id,
-                        role = Role.ENTRANT,
-                        name = entrant["name"] as String,
-                        email = entrant["email"] as String,
-                        phone_number = entrant["phone_number"] as String,
-                        _notifications = mutableListOf<Notification>()
-                    )
-                }
-            }
-        }
-
-        owners_ref.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
             _owners.clear()
-            snapshot?.documents?.forEach { document ->
-                val owner: Map<String, Any>? = document.data
-                if (owner != null) {
-                    _owners[document.id] = CampsiteOwner(
-                        UID = document.id,
-                        role = Role.OWNER,
-                        name = owner["name"] as String,
-                        email = owner["email"] as String,
-                        phone_number = owner["phone_number"] as String,
-                        // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
-                        // mapNotNull skips campsites that have not loaded yet instead of crashing.
-                        _owned_campsites = (owner["owned_campsites"] as List<*>).mapNotNull { uid -> _campsites[uid as String] }.toMutableList()
-                    )
-                }
-            }
-        }
-
-        admins_ref.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
             _admins.clear()
+            _user_owned_campsite_uids.clear()
+
             snapshot?.documents?.forEach { document ->
-                val admin: Map<String, Any>? = document.data
-                if (admin != null) {
-                    _admins[document.id] = Admin(
-                        UID = document.id,
-                        role = Role.ADMIN,
-                        name = admin["name"] as String,
-                        email = admin["email"] as String,
-                        phone_number = admin["phone_number"] as String,
-                        _owned_campsites = (admin["owned_campsites"] as List<*>).map { uid -> _campsites[uid as String] as Campsite }.toMutableList()
-                    )
+                val data = document.data ?: return@forEach
+                val role_string = data["role"] as? String ?: Role.ENTRANT.name
+                val parsed_role = try {
+                    Role.valueOf(role_string.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    Role.ENTRANT
                 }
+                val owned_uids = (data["owned_campsites"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+                _user_owned_campsite_uids[document.id] = owned_uids
+
+                val user = Admin(
+                    UID = document.id,
+                    role = parsed_role,
+                    name = data["name"] as? String ?: "",
+                    email = data["email"] as? String ?: "",
+                    phone_number = data["phone_number"] as? String ?: "",
+                    _owned_campsites = owned_uids.mapNotNull { _campsites[it] }.toMutableList()
+                )
+
+                _all_users[document.id] = user
+                if (user.has_entrant_access) _entrants[document.id] = user
+                if (user.has_owner_access) _owners[document.id] = user
+                if (user.has_admin_access) _admins[document.id] = user
             }
+
+            current_user = current_user_uid?.let { _all_users[it] }
         }
 
         campsites_ref.addSnapshotListener { snapshot, error ->
@@ -171,9 +192,12 @@ class FirestoreDriver {
                         // The above is created without values because the reservations themselves handle adding themselves to this list.
                         _ratings = ratings,
                         average_rating = (campsite["average_rating"] as String).toFloat(),
-                        _waiting_list = (campsite["waiting_list"] as List<*>).map { _entrants[it as String] as Entrant }.toMutableList(),
+                        _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { (it as? String)?.let { uid -> _all_users[uid] } }.toMutableList(),
                         waitlist_capacity = (campsite["waitlist_capacity"] as Long).toInt()
                     )
+                    _all_users.forEach { (uid, user) ->
+                        _user_owned_campsite_uids[uid]?.mapNotNull { _campsites[it] }?.forEach { user.addCampsite(it) }
+                    }
                 }
             }
         }
@@ -186,10 +210,17 @@ class FirestoreDriver {
             snapshot?.documents?.forEach() { document ->
                 val reservation: Map<String, Any>? = document.data
                 if (reservation != null) {
+                    // Safely read the IDs as Strings (if missing, skip this document)
+                    val campsite_uid = reservation["campsite"] as? String ?: return@forEach
+                    val entrant_uid = reservation["entrant"] as? String ?: return@forEach
+                    // Look up the actual objects (if not loaded yet, skip this document)
+                    val campsite = _campsites[campsite_uid] ?: return@forEach
+                    val entrant = _all_users[entrant_uid] ?: return@forEach
+                    // Pass the safe, non-null objects into Reservation(...)
                     _reservations[document.id] = Reservation(
                         UID =            document.id,
-                        campsite =       _campsites[reservation["campsite"] as String] as Campsite,
-                        entrant =        _entrants[reservation["entrant"] as String] as Entrant,
+                        campsite =       campsite,
+                        entrant =        entrant,
                         guest_count =    (reservation["guest_count"] as Long).toInt(),
                         beginning_date = reservation["beginning_date"] as String,
                         end_date =       reservation["end_date"] as String
@@ -199,11 +230,9 @@ class FirestoreDriver {
         }
     }
 
-    fun generateNextUid(source_map:  Set<String>): String {
-        if (source_map.isNotEmpty()) {
-            return ((source_map.map { it.toInt() }).sortedDescending()[0] + 1).toString()
-        }
-        return "0"
+    fun generateNextUid(source_map: Set<String>): String {
+        val numeric_ids = source_map.mapNotNull { it.toIntOrNull() }
+        return if (numeric_ids.isNotEmpty()) (numeric_ids.max() + 1).toString() else "0"
     }
 
     fun addReservation(reservation: Reservation): Task<Void> {
@@ -282,75 +311,68 @@ class FirestoreDriver {
         return campsites_ref.document(campsite.UID).set(firestore_format)
     }
 
+    // Name: Devesh Darji
+    // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+    // Prompt: "How do I clean up owner references when deleting a campsite and route all user save/delete methods to the unified users collection?" 2026-11-22
+    // Updated deleteCampsite to remove deleted UIDs from owners, added saveUser() to persist all role flags to users_ref, and made generateNextUid() ignore non-numeric Auth UIDs.
     fun deleteCampsite(campsite: Campsite): Task<Void> {
         campsite.clearReservations()
+        _all_users.values.forEach { user ->
+            if (user.owned_campsites.any { it.UID == campsite.UID }) {
+                user.removeCampsite(campsite)
+                saveUser(user)
+            }
+        }
         return campsites_ref.document(campsite.UID).delete()
     }
 
-    fun addEntrant(entrant: Entrant): Task<Void> {
-        val UID: String = if (entrant.UID.isNotBlank()) entrant.UID else generateNextUid(_entrants.keys)
+    private fun saveUser(user: Entrant): Task<Void> {
+        val uid = if (user.UID.isNotBlank()) user.UID else generateNextUid(_all_users.keys)
+        val owned_uids = if (user is CampsiteOwner) user.owned_campsites.map { it.UID } else emptyList()
         val firestore_format = mapOf<String, Any>(
-            "role" to entrant.getRole(),
-            "name" to entrant.getName(),
-            "email" to entrant.getEmail(),
-            "phone_number" to entrant.getPhoneNumber(),
-            "notifications" to entrant.notifications.map { it.UID })
-        return entrants_ref.document(UID).set(firestore_format)
+            "name" to user.getName(),
+            "email" to user.getEmail(),
+            "phone_number" to user.getPhoneNumber(),
+            "role" to user.getRole(),
+            "notifications" to user.notifications.map { it.UID },
+            "owned_campsites" to owned_uids
+        )
+        return users_ref.document(uid).set(firestore_format)
     }
+
+    fun updateUserRole(user: Entrant, new_role: Role): Task<Void> {
+        user.role = new_role
+        return saveUser(user)
+    }
+
+    fun addEntrant(entrant: Entrant): Task<Void> {
+        return saveUser(entrant)
+    }
+
     fun deleteEntrant(entrant: Entrant): Task<Void> {
         entrant.clearReservations()
-        return entrants_ref.document(entrant.UID).delete()
+        return users_ref.document(entrant.UID).delete()
     }
 
     fun addOwner(owner: CampsiteOwner): Task<Void> {
-        val UID: String = if (owner.UID.isNotBlank()) owner.UID else generateNextUid(_owners.keys)
-        val firestore_format = mapOf<String, Any>(
-            "role" to owner.getRole(),
-            "name" to owner.getName(),
-            "email" to owner.getEmail(),
-            "phone_number" to owner.getPhoneNumber(),
-            "owned_campsites" to owner.owned_campsites.map { it.UID })
-        return owners_ref.document(UID).set(firestore_format)
+        return saveUser(owner)
     }
 
-    // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
-    /**
-     * Saves an owner under their existing UID, replacing the stored document with the
-     * owner's current values (including their owned campsites, saved as UIDs).
-     * If no document with that UID exists yet, Firestore creates it.
-     *
-     * @param owner the CampsiteOwner to save. Their UID must not be blank.
-     * @return the Firestore Task for the save.
-     */
     fun updateOwner(owner: CampsiteOwner): Task<Void> {
-        val firestore_format = mapOf<String, Any>(
-            "role" to owner.getRole(),
-            "name" to owner.getName(),
-            "email" to owner.getEmail(),
-            "phone_number" to owner.getPhoneNumber(),
-            "owned_campsites" to owner.owned_campsites.map { it.UID })
-        return owners_ref.document(owner.UID).set(firestore_format)
+        return saveUser(owner)
     }
 
     fun deleteOwner(owner: CampsiteOwner): Task<Void> {
-        // If we delete an owner should we also remove all of their campsites? Question for later.
         owner.clearReservations()
-        return owners_ref.document(owner.UID).delete()
+        return users_ref.document(owner.UID).delete()
     }
 
     fun addAdmin(admin: Admin): Task<Void> {
-        val UID: String = if (admin.UID.isNotBlank()) admin.UID else generateNextUid(_admins.keys)
-        val firestore_format = mapOf<String, Any>(
-            "role" to admin.getRole(),
-            "name" to admin.getName(),
-            "email" to admin.getEmail(),
-            "phone_number" to admin.getPhoneNumber(),
-            "notifications" to admin.notifications.map { it.UID },
-            "owned_campsites" to admin.owned_campsites.map { it.UID })
-        return admins_ref.document(UID).set(firestore_format)
+        return saveUser(admin)
     }
+
     fun deleteAdmin(admin: Admin): Task<Void> {
         admin.clearReservations()
-        return admins_ref.document(admin.UID).delete()
+        return users_ref.document(admin.UID).delete()
     }
 }

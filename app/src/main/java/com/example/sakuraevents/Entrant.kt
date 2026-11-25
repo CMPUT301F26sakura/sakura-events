@@ -37,17 +37,21 @@ enum class Role {
  * @property _notifications Backing mutable list of notifications delivered to the entrant.
  */
 
-open class Entrant (val UID: String= "",
-                    private val role: Role,
-                    private var name: String,
-                    private var email: String,
-                    private var phone_number: String,
-                    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
-                    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()){
-
+open class Entrant (
+    val UID: String = "",
+    var role: Role = Role.ENTRANT,
+    private var name: String,
+    private var email: String,
+    private var phone_number: String,
+    private val _reservations: MutableList<Reservation> = mutableListOf<Reservation>(),
+    private val _notifications: MutableList<Notification> = mutableListOf<Notification>()
+) {
     val reservations: List<Reservation> get() = _reservations
     val notifications: List<Notification> get() = _notifications
 
+    val has_entrant_access: Boolean get() = role == Role.ENTRANT || role == Role.ADMIN
+    val has_owner_access: Boolean get() = role == Role.OWNER || role == Role.ADMIN
+    val has_admin_access: Boolean get() = role == Role.ADMIN
     /**
      * Adds a [Reservation] to the entrant's reservation list if not already present.
      * @param reservation The [Reservation] object to add.
@@ -73,7 +77,7 @@ open class Entrant (val UID: String= "",
      * @return Role name string ("ENTRANT", "OWNER", or "ADMIN").
      */
     fun getRole(): String {
-        return role.toString()
+        return role.name
     }
     /**
      * Returns the entrant's full name.

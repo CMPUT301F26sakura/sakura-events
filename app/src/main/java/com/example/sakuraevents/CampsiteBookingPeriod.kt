@@ -10,17 +10,15 @@
 
 package com.example.sakuraevents
 
-import android.R.attr.text
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePickerDefaults.dateFormatter
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.getSelectedStartDate
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.android.identity.cbor.Uint
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -45,33 +44,37 @@ import java.util.Locale
 @Composable
 fun CampsiteBookingPeriodField(
     campsite: Campsite,
-    onCampsiteChanged: (Campsite) -> Uint,
+    onCampsiteChanged: (Campsite) -> Unit,
     modifier: Modifier = Modifier
 ){
     var show_date by remember { mutableStateOf(false) }
     val  dateRangePickerState = rememberDateRangePickerState()
 
     //format of the date string
-    val date_format = remember { SimpleDateFormat("YYYY-MM-DD", Locale.getDefault()) }
-
-    Column(modifier = modifier.fillMaxWidth()){
+    val date_format = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply{
+        timeZone = java.util.TimeZone.getTimeZone("UTC")
+    } }
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         val dates = campsite.booking_period_dates
         val display_data = if (dates.isNotEmpty()) {
             val sorted_dates = dates.sorted()
             "${sorted_dates.first()} to ${sorted_dates.last()}"
         } else {
-            "Not Date Information."
+            "None"
         }
 
-        Text(
-            text = "Booking Period: $display_data",
-            modifier = Modifier.padding().testTag("period_displayed")
-        )
+        Column(modifier = Modifier.testTag("period_displayed")) {
+            Text(text = "Booking Period", fontWeight = FontWeight.Bold)
+            Text(text = display_data)
+        }
 
         Button(
-            onClick = { show_date = true},
+            onClick = { show_date = true },
             modifier = Modifier.testTag("select_period_button")
-        ){
+        ) {
             Text("Select Period")
         }
     }
