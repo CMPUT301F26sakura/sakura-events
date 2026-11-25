@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -50,15 +51,16 @@ fun RatingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Yellow)
+            .background(COLOURS.LIGHTYELLOW.colour)
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Rate Your Campsite",
-            color = Color.Black,
-            fontSize = 24.sp
+            color = COLOURS.DARKGREEN.colour,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -139,7 +141,7 @@ fun RatingScreen(
                     !alreadyRated &&
                     !isSaving,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50),
+                containerColor = COLOURS.DARKGREEN.colour,
                 contentColor = Color.White
             )
         ) {
@@ -150,7 +152,7 @@ fun RatingScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Rating submitted successfully",
-                color = Color(0xFF4CAF50)
+                color = COLOURS.DARKGREEN.colour
             )
         }
 
