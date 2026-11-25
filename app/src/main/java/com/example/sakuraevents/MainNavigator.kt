@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cabin
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
@@ -109,6 +110,8 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             composable("Home") { homeScreen(modifier, innerPadding) }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
             composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
+            // Notifications page (US 01.03.01, 01.03.02, 01.10.01, 02.10.02). Written with help from Anthropic, Claude, "Notifications page route", 2026-11-25
+            composable("Notifications") { notificationsScreen(firestoreDriver, innerPadding) }
             composable("AdminDashboard") {
                 Box(modifier = Modifier.padding(innerPadding)) {
                     AdminNavigation(
@@ -270,6 +273,7 @@ fun topBar(nav_controller: NavController, current_location: String?) {
         "Home" to "Home",
         "Search" to "Search",
         "Profile" to "Profile",
+        "Notifications" to "Notifications",
         "OwnerCampsites" to "My Campsites",
         "AdminDashboard" to "Admin Dashboard",
         "CampsiteDetails/{uid}" to "Campsite Details",
@@ -290,6 +294,21 @@ fun topBar(nav_controller: NavController, current_location: String?) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
+                    )
+                }
+            }
+        },
+        // Bell icon that opens the Notifications page. Written with help from Anthropic, Claude, "Notifications bell in top bar", 2026-11-25
+        actions = {
+            if (current_location != "Notifications") {
+                IconButton(
+                    onClick = { nav_controller.navigate("Notifications") { launchSingleTop = true } },
+                    modifier = Modifier.testTag("notifications_bell")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        tint = Color.Black
                     )
                 }
             }
