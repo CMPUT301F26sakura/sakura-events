@@ -45,11 +45,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.google.apps.card.v1.OnClick
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun homeScreen(modifier: Modifier = Modifier, innerPadding: PaddingValues){
+fun homeScreen(
+    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues,
+    onPolicyClick: () -> Unit = {}
+) {
 
     /**
      * display the select icon with different color to distinguish
@@ -64,7 +69,11 @@ fun homeScreen(modifier: Modifier = Modifier, innerPadding: PaddingValues){
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Main Screen Content")
+        standardButton(
+            clicked = onPolicyClick,
+            test_tag = "PolicyButton",
+            button_text = "Policy and Guidelines"
+        )
     }
 
 }

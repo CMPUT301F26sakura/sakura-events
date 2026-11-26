@@ -106,7 +106,8 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     ) { innerPadding ->
         // put your US stories code under
         NavHost(navController = nav_controller, startDestination = "Home") {
-            composable("Home") { homeScreen(modifier, innerPadding) }
+            composable("Home") { homeScreen(modifier, innerPadding, onPolicyClick = {nav_controller.navigate("Policy")}) }
+            composable("Policy") { Box(modifier = Modifier.padding(innerPadding)) { PolicyScreen() } }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
             composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
             composable("AdminDashboard") {

@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,8 +35,10 @@ fun PolicyScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Yellow)
+            .background(COLOURS.LIGHTYELLOW.colour)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
+
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start
 
@@ -43,7 +47,7 @@ fun PolicyScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFF006400))
+                .background(COLOURS.DARKGREEN.colour)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(40.dp)
         ) {
@@ -96,7 +100,7 @@ fun PolicyScreen() {
                     ){
                         Text(
                             text = "${index + 1}",
-                            color = Color(0xFF006400),
+                            color = COLOURS.DARKGREEN.colour,
                             fontWeight = FontWeight.Bold
                         )
                     }
