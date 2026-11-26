@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +40,7 @@ fun RatingScreen(
     firestoreDriver: FirestoreDriver? = null
 ) {
     var rating by remember { mutableIntStateOf(0) }
+    var review by remember { mutableStateOf("") }
     var submitted by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -84,6 +88,19 @@ fun RatingScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        OutlinedTextField(
+            value = review,
+            onValueChange = { review = it },
+            label = { Text("Leave a Review") },
+            placeholder = { Text("Write your review here...") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3,
+            shape = RoundedCornerShape(12.dp),
+            enabled = canRate && !alreadyRated && !submitted && !isSaving
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
         Button(
             onClick = {
                 if (
@@ -115,13 +132,19 @@ fun RatingScreen(
                         _ratings = campsite.ratings.toMutableList(),
                         average_rating = campsite.getAvgRating().toFloat(),
                         _waiting_list = campsite.waiting_list.toMutableList(),
-                        waitlist_capacity = campsite.getWaitlistCapacity()
+                        waitlist_capacity = campsite.getWaitlistCapacity(),
+                        _reviews = campsite.reviews.toMutableMap()
+
                     )
 
                     updatedCampsite.addRating(entrant, rating.toFloat())
+                    updatedCampsite.addReview(entrant, review)
 
                     // Save the updated campsite to Firebase.
-                    firestoreDriver.updateCampsite(updatedCampsite)
+                    firestoreDriver.submitRating(campsiteUID = campsite.UID,
+                        entrantUID = entrant.UID,
+                        score = rating.toFloat(),
+                        review = review)
                         .addOnSuccessListener {
                             submitted = true
                             isSaving = false
@@ -146,6 +169,13 @@ fun RatingScreen(
             )
         ) {
             Text(if (isSaving) "Saving..." else "Submit Rating")
+        }
+        if (alreadyRated && !submitted){
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "You have already rated this campsite.",
+                color = COLOURS.DARKGREEN.colour
+            )
         }
 
         if (submitted) {
