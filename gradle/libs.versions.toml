@@ -10,6 +10,7 @@ kotlin = "2.4.21"
 composeBom = "2026.09.00"
 navigationCompose = "2.10.2"
 identity = "202411.1"
+material3 = "1.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -29,6 +30,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 identity = { group = "com.android.identity", name = "identity", version.ref = "identity" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -65,6 +65,7 @@ fun homeScreen(modifier: Modifier = Modifier, innerPadding: PaddingValues){
         contentAlignment = Alignment.Center
     ) {
         Text(text = "Main Screen Content")
+        PolicyScreen()
     }
 
 }
