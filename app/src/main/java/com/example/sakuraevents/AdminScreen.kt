@@ -70,22 +70,6 @@ fun AdminScreen(
         Button(onClick = on_manage_images) {
             Text("Manage Images")
         }
-        // Admins can also use entrant and campsite owner features.
-        if (show_entrant_button || show_owner_button) {
-            Text("Other Roles")
-        }
-
-        if (show_entrant_button) {
-            Button(onClick = on_continue_as_entrant) {
-                Text("Continue as Entrant")
-            }
-        }
-
-        if (show_owner_button) {
-            Button(onClick = on_continue_as_owner) {
-                Text("Continue as Campsite Owner")
-            }
-        }
     }
 }
 

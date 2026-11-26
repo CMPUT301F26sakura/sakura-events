@@ -53,10 +53,6 @@ fun AdminNavigation(
                 on_manage_campsites = { nav_controller.navigate("campsites") },
                 on_manage_profiles = { nav_controller.navigate("profiles") },
                 on_manage_images = { nav_controller.navigate("images") },
-                on_continue_as_entrant = on_open_entrant,
-                on_continue_as_owner = on_open_owner,
-                show_entrant_button = firestore_driver.current_user?.has_entrant_access == true,
-                show_owner_button = firestore_driver.current_user?.has_owner_access == true
             )
         }
 
@@ -95,26 +91,6 @@ fun AdminNavigation(
                 on_remove = { /* TODO in second half */ },
                 on_back = { nav_controller.popBackStack() }
             )
-        }
-
-        // Entrant mode
-        composable("entrant") {
-            Column(modifier = Modifier.statusBarsPadding().padding(16.dp)) {
-                Text("Entrant Mode Dashboard (Coming Soon)")
-                Button(onClick = { nav_controller.popBackStack() }) {
-                    Text("Back to Admin")
-                }
-            }
-        }
-
-        // Owner mode
-        composable("owner") {
-            Column(modifier = Modifier.statusBarsPadding().padding(16.dp)) {
-                Text("Campsite Owner Dashboard (Coming Soon)")
-                Button(onClick = { nav_controller.popBackStack() }) {
-                    Text("Back to Admin")
-                }
-            }
         }
     }
 }
