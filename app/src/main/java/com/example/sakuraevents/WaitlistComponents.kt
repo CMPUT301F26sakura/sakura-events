@@ -98,6 +98,7 @@ fun WaitlistCapacityField(
 ) {
     var capacity_text by remember { mutableStateOf(campsite.getWaitlistCapacity().toString()) }
     var error_message by remember { mutableStateOf("") }
+    var saved_message by remember { mutableStateOf("") }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -115,9 +116,11 @@ fun WaitlistCapacityField(
                 onClick = {
                     val new_capacity = capacity_text.trim().toIntOrNull()
                     if (new_capacity != null && campsite.setWaitlistCapacity(new_capacity)) {
+                        saved_message = "Waitlist capacity is updated."
                         error_message = ""
                         onCapacityChanged(campsite)
                     } else {
+                        saved_message = ""
                         error_message = "Enter a whole number, 0 or higher."
                     }
                 },
@@ -132,6 +135,8 @@ fun WaitlistCapacityField(
         }
         if (error_message.isNotEmpty()) {
             Text(text = error_message, color = Color.Red, modifier = Modifier.testTag("capacity_error"))
+        } else if (saved_message.isNotEmpty()) {
+            Text(text = saved_message, color = COLOURS.DARKGREEN.colour, modifier = Modifier.testTag("capacity_updated"))
         }
     }
 }
