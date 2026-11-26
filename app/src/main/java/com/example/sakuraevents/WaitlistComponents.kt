@@ -103,9 +103,11 @@ fun WaitlistCapacityField(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = capacity_text,
-                onValueChange = { capacity_text = it },
+                // Highlighting the invalid field (TA feedback) was written with help from Anthropic, Claude, "Highlight invalid capacity input", 2026-11-25
+                onValueChange = { capacity_text = it; error_message = "" },
                 label = { Text("Waitlist capacity (0 = no limit)") },
                 singleLine = true,
+                isError = error_message.isNotEmpty(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f).testTag("capacity_input")
             )
