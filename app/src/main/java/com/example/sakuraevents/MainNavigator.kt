@@ -109,6 +109,12 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         NavHost(navController = nav_controller, startDestination = "Home") {
             composable("Home") { homeScreen(modifier, innerPadding) }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
+            // Allows entrants to rate and review a campsite after completing their reservation.
+            composable("Rating/{reservationUID}") { backStackEntry ->
+                val reservationUID = backStackEntry.arguments ?.getString("reservationUID")
+                val entrant = firestoreDriver.current_user
+                val reservation = firestoreDriver.reservations[reservationUID]?.takeIf { it.getEntrant().UID == entrant?.UID && it.getState() == "COMPLETE" }
+                Box(modifier = Modifier.padding(innerPadding)) { RatingScreen(reservation = reservation, entrant = entrant, firestoreDriver = firestoreDriver)} }
             composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
             // Notifications page (US 01.03.01, 01.03.02, 01.10.01, 02.10.02). Written with help from Anthropic, Claude, "Notifications page route", 2026-11-25
             composable("Notifications") { notificationsScreen(firestoreDriver, innerPadding) }

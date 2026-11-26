@@ -35,7 +35,8 @@ import androidx.compose.runtime.setValue
  */
 class FirestoreDriver {
 
-    private val _reservations = mutableMapOf<String, Reservation>()
+    // Automatically update the UI when reservations change.
+    private val _reservations = mutableStateMapOf<String, Reservation>()
     // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
     private val _campsites = mutableStateMapOf<String, Campsite>()

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * File: ProfileScreen.kt
  * Purpose: Displays the user's device-identified profile, allowing them to update
  * personal contact details, view lottery notifications, switch roles (Entrant, Owner, Admin),
@@ -61,6 +61,21 @@ fun profileScreen(nav_controller: NavController, firestore_driver: FirestoreDriv
             Text("Device UID: ${firestore_driver.current_user_uid ?: "Signing in..."}")
             Text("Roles: ${current_user?.getRole() ?: "Loading..."}")
             Spacer(modifier = Modifier.height(16.dp))
+            // US 01.13.01: Rate completed campsite reservations.
+            if (current_user?.has_entrant_access == true) {
+                firestore_driver.reservations.forEach { (uid, reservation) ->
+                    if (reservation.getEntrant().UID == current_user.UID &&
+                        reservation.getState() == "COMPLETE"
+                    ) {
+                        standardButton(
+                            clicked = { nav_controller.navigate("Rating/$uid") },
+                            test_tag = "RateCampsiteButton_$uid",
+                            button_text = "Rate Campsite"
+                        )
+                    }
+                }
+            }
+
             if (current_user?.has_owner_access == true) {
                 Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
                     Text("My Campsites")
