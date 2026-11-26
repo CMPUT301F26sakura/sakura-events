@@ -58,7 +58,11 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
             nav_controller.popBackStack()
         },
         entrant = if (current_user?.has_entrant_access == true) current_user else null,
-        on_waitlist_changed = { firestore_driver.updateCampsite(it) }
+        on_waitlist_changed = { firestore_driver.updateCampsite(it) },
+        // Written with help from Anthropic, Claude, "Owner waitlist messages and capacity on campsite details", 2026-11-25
+        // Owners/admins managing this campsite can set the waitlist capacity and message the waitlist.
+        sender = if (can_manage) current_user else null,
+        on_send_notification = { firestore_driver.addNotification(it) }
     )
 }
 
@@ -69,6 +73,8 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
  * @param campsite the Campsite to show, or null if it was not found.
  * @param on_back what to do when the back arrow is tapped.
  * @param on_edit what to do when "Edit" is tapped.
+ * @param sender the owner managing this campsite, or null; when set, the "Message your waitlist" form is shown.
+ * @param on_send_notification called with a new waitlist Notification, e.g. to save it to Firestore.
  */
 @Composable
 fun campsiteDetailsContent(
@@ -80,7 +86,9 @@ fun campsiteDetailsContent(
     show_delete: Boolean = false,
     on_delete: (Campsite) -> Unit = {},
     entrant: Entrant? = null,
-    on_waitlist_changed: (Campsite) -> Unit = {}
+    on_waitlist_changed: (Campsite) -> Unit = {},
+    sender: CampsiteOwner? = null,
+    on_send_notification: (Notification) -> Unit = {}
 ) {
     Scaffold(
         topBar = { ownerTopBar("Campsite Details", on_back) },
@@ -110,6 +118,20 @@ fun campsiteDetailsContent(
                 CampsiteBookingPeriodField(
                     campsite = campsite,
                     onCampsiteChanged = on_campsite_changed
+                )
+                // Waitlist capacity (US 02.04.07)
+                WaitlistCapacityField(
+                    campsite = campsite,
+                    onCapacityChanged = on_campsite_changed
+                )
+            }
+
+            // Message the waitlist (US 02.10.01)
+            if (sender != null) {
+                SendWaitlistNotificationSection(
+                    campsite = campsite,
+                    sender = sender,
+                    on_send = on_send_notification
                 )
             }
 

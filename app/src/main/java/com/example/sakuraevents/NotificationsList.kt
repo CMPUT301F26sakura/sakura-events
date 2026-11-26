@@ -31,11 +31,26 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun NotificationsList(entrant: Entrant, modifier: Modifier = Modifier) {
-    val notifications = entrant.notifications.reversed()
+    NotificationsList(notifications = entrant.notifications.reversed(), modifier = modifier)
+}
 
+// The following overload was written with help from Anthropic, Claude, "Reusable notifications list for received and sent notifications", 2026-11-25
+/**
+ * Shows a list of notifications in the given order,
+ * or [empty_text] if the list is empty.
+ *
+ * @param notifications the notifications to show.
+ * @param empty_text the message shown when there are no notifications.
+ */
+@Composable
+fun NotificationsList(
+    notifications: List<Notification>,
+    modifier: Modifier = Modifier,
+    empty_text: String = "No notifications yet"
+) {
     if (notifications.isEmpty()) {
         Text(
-            text = "No notifications yet",
+            text = empty_text,
             modifier = modifier.padding(16.dp).testTag("notifications_empty")
         )
         return
