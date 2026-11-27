@@ -42,6 +42,7 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -270,5 +271,26 @@ class OwnerCampsiteFlowTest {
 
         compose_rule.onNodeWithText("Pine Valley").assertIsDisplayed()
         compose_rule.onNodeWithTag("campsiteQrCode").assertDoesNotExist()
+    }
+
+    // Name: Arham Ahmed
+    // The test below was written with help from Anthropic, Claude (Claude Code), "Show Signing in until anonymous sign-in finishes on owner screens", 2026-11-26
+    /**
+     * Before sign-in finishes, owner screens show a "Signing in…" page with their title instead of
+     * another owner's data, and the back arrow still works.
+     */
+    @Test
+    fun signingInPageShowsMessageAndBackWorks() {
+        var went_back = false
+        compose_rule.setContent {
+            signingInContent("My Campsites") { went_back = true }
+        }
+
+        compose_rule.onNodeWithTag("signingInText").assertIsDisplayed().assertTextEquals("Signing in…")
+        compose_rule.onNodeWithText("My Campsites").assertIsDisplayed()
+        compose_rule.onNodeWithTag("registerCampsiteButton").assertDoesNotExist()
+
+        compose_rule.onNodeWithContentDescription("Back").performClick()
+        assertTrue(went_back)
     }
 }

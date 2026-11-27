@@ -36,9 +36,31 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ButtonDefaults
 
-// TODO: Replace with the logged-in owner's UID once sign-in is implemented.
-/** The UID of the owner whose campsites these screens show, until there is a login. */
-const val TEST_OWNER_UID = "0"
+// Name: Arham Ahmed
+// Written with help from Anthropic, Claude (Claude Code), "Show Signing in until anonymous sign-in finishes on owner screens", 2026-11-26
+/**
+ * The page owner screens show until anonymous sign-in has set FirestoreDriver.current_user_uid,
+ * so nothing is loaded or saved under the wrong owner in the meantime.
+ *
+ * @param title the text shown in the middle of the top bar.
+ * @param on_back what to do when the back arrow is tapped.
+ */
+@Composable
+fun signingInContent(title: String, on_back: () -> Unit) {
+    Scaffold(
+        topBar = { ownerTopBar(title, on_back) },
+        containerColor = COLOURS.LIGHTYELLOW.colour
+    ) { inner_padding ->
+        Column(
+            modifier = Modifier
+                .padding(inner_padding)
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            Text("Signing in…", modifier = Modifier.testTag("signingInText"))
+        }
+    }
+}
 
 /**
  * The top bar used by the owner campsite screens: a title in the middle and a back arrow
@@ -48,7 +70,7 @@ const val TEST_OWNER_UID = "0"
  * @param on_back what to do when the back arrow is tapped.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable //onwards, fetchs data from firebase, and has clickables buttons
+@Composable
 fun ownerTopBar(title: String, on_back: () -> Unit) {
     CenterAlignedTopAppBar(
         title = { Text(title) },
@@ -74,9 +96,15 @@ fun ownerTopBar(title: String, on_back: () -> Unit) {
  * @param nav_controller the app's NavController, used to move between pages.
  * @param firestore_driver the app's FirestoreDriver, which holds the loaded owners and campsites.
  */
-@Composable //onwards, fetchs data from firebase, and has clickables buttons
+@Composable
 fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: FirestoreDriver) {
-    val owner_uid = firestore_driver.current_user_uid ?: TEST_OWNER_UID
+    // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show Signing in until anonymous sign-in finishes on owner screens", 2026-11-26
+    // Wait for sign-in instead of showing a placeholder owner's campsites.
+    val owner_uid = firestore_driver.current_user_uid
+    if (owner_uid == null) {
+        signingInContent("My Campsites") { nav_controller.popBackStack() }
+        return
+    }
     val owner = firestore_driver.owners[owner_uid]
     // True for builds run from Android Studio, false for release builds.
     val is_debug_build = (LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -199,7 +227,7 @@ fun ownerCampsiteListContent(
  * @param campsite the Campsite to show.
  * @param on_click what to do when the row is tapped.
  */
-@Composable //draws the data handed over
+@Composable
 // Name: Devesh Darji
 // The following function / lines of code were generated / modified by Google Gemini Neon Model.
 // Prompt: "How do I add Edit and optional Delete buttons to each card in campsiteListItem?" 2026-11-22

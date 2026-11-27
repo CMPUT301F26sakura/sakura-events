@@ -216,7 +216,12 @@ fun buildLotteryFromForm(uid: String, values: LotteryFormValues): Lottery {
  */
 @Composable
 fun ownerLotteryScreen(nav_controller: NavController, firestore_driver: FirestoreDriver) {
-    val owner_uid = firestore_driver.current_user_uid ?: TEST_OWNER_UID
+    // Wait for sign-in so lotteries are never loaded or saved under the wrong owner.
+    val owner_uid = firestore_driver.current_user_uid
+    if (owner_uid == null) {
+        signingInContent("My Lotteries") { nav_controller.popBackStack() }
+        return
+    }
 
     ownerLotteryContent(
         lotteries = firestore_driver.getLotteriesOwnedBy(owner_uid),
