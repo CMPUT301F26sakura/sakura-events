@@ -48,7 +48,7 @@ const val TEST_OWNER_UID = "0"
  * @param on_back what to do when the back arrow is tapped.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable
+@Composable //onwards, fetchs data from firebase, and has clickables buttons
 fun ownerTopBar(title: String, on_back: () -> Unit) {
     CenterAlignedTopAppBar(
         title = { Text(title) },
@@ -74,7 +74,7 @@ fun ownerTopBar(title: String, on_back: () -> Unit) {
  * @param nav_controller the app's NavController, used to move between pages.
  * @param firestore_driver the app's FirestoreDriver, which holds the loaded owners and campsites.
  */
-@Composable
+@Composable //onwards, fetchs data from firebase, and has clickables buttons
 fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: FirestoreDriver) {
     val owner_uid = firestore_driver.current_user_uid ?: TEST_OWNER_UID
     val owner = firestore_driver.owners[owner_uid]
@@ -103,7 +103,8 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
         on_campsite_click = { campsite -> nav_controller.navigate("CampsiteDetails/${campsite.UID}") },
         on_edit = { campsite -> nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") },
         on_delete = { campsite -> firestore_driver.deleteCampsite(campsite) },
-        show_delete = firestore_driver.current_user?.has_admin_access == true
+        show_delete = firestore_driver.current_user?.has_admin_access == true,
+        on_my_lotteries = { nav_controller.navigate("OwnerLotteries") }
 
     )
 }
@@ -119,6 +120,7 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
  * @param on_create_test_owner what to do when "Create test owner" is tapped.
  * @param on_register what to do when "Register campsite" is tapped.
  * @param on_campsite_click what to do when a campsite in the list is tapped.
+ * @param on_my_lotteries what to do when "My Lotteries" is tapped (US 02.04.01, US 02.04.06).
  */
 @Composable
 fun ownerCampsiteListContent(
@@ -131,7 +133,8 @@ fun ownerCampsiteListContent(
     on_campsite_click: (Campsite) -> Unit,
     on_edit: (Campsite) -> Unit = {},
     on_delete: (Campsite) -> Unit = {},
-    show_delete: Boolean = false
+    show_delete: Boolean = false,
+    on_my_lotteries: () -> Unit = {}
 ) {
     Scaffold(
         topBar = { ownerTopBar("My Campsites", on_back) },
@@ -154,8 +157,16 @@ fun ownerCampsiteListContent(
 //                return@Column
 //            }
 
-            Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
-                Text("Register campsite")
+            // Name: Arham Ahmed
+            // Written with help from Anthropic, Claude (Claude Code), "Build owner lottery listing screen for US 02.04.01-02.04.03 and US 02.04.06", 2026-11-26
+            // "My Lotteries" sits next to "Register campsite" so owners can list their campsites in a lottery.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
+                    Text("Register campsite")
+                }
+                Button(onClick = on_my_lotteries, modifier = Modifier.testTag("myLotteriesButton")) {
+                    Text("My Lotteries")
+                }
             }
 
             if (campsites.isEmpty()) {
@@ -188,7 +199,7 @@ fun ownerCampsiteListContent(
  * @param campsite the Campsite to show.
  * @param on_click what to do when the row is tapped.
  */
-@Composable
+@Composable //draws the data handed over
 // Name: Devesh Darji
 // The following function / lines of code were generated / modified by Google Gemini Neon Model.
 // Prompt: "How do I add Edit and optional Delete buttons to each card in campsiteListItem?" 2026-11-22
