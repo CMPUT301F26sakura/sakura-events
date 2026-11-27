@@ -11,6 +11,8 @@
  * - US 02.01.03: As a campsite owner, I want to update campsite details.
  * - US 02.01.04: As a campsite owner, I want to view the details of my campsite.
  * - US 02.03.01: As a campsite owner, I want to view a list of my campsites.
+ * - US 02.02.01: As a campsite owner, I want the system to generate a unique QR code that links to
+ *   the campsite details. (QR tests added by Arham Ahmed.)
  *
  * These tests use fake CampsiteOwner and Campsite objects instead of Firestore, so they are fast,
  * need no internet, and never change the team's database. The small ownerScreensHost below stands
@@ -29,7 +31,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -238,5 +242,33 @@ class OwnerCampsiteFlowTest {
         assertEquals("Pine Valley North", campsite.getName())
         assertEquals(40.0f, campsite.getPrice())
         assertEquals(emptyList<String>(), campsite.tags)
+    }
+
+    // Name: Arham Ahmed
+    // The two tests below were written with help from Anthropic, Claude (Claude Code), "Show campsite QR code image with zxing for US 02.02.01", 2026-11-26
+    /** The campsite's owner should see its QR code image and the link it holds (US 02.02.01). */
+    @Test
+    fun ownerSeesCampsiteQrCode() {
+        val campsite = makeCampsite("camp1", "Pine Valley")
+        compose_rule.setContent {
+            campsiteDetailsContent(campsite = campsite, on_back = {}, on_edit = {}, show_qr_code = true)
+        }
+
+        compose_rule.onNodeWithTag("campsiteQrCode").performScrollTo().assertIsDisplayed()
+        compose_rule.onNodeWithContentDescription("QR code for Pine Valley").assertExists()
+        compose_rule.onNodeWithTag("campsiteQrPayload").performScrollTo()
+            .assertTextEquals("sakuraevents://campsite/camp1")
+    }
+
+    /** Someone who does not own the campsite should not see its QR code (US 02.02.01). */
+    @Test
+    fun nonOwnerDoesNotSeeCampsiteQrCode() {
+        compose_rule.setContent {
+            campsiteDetailsContent(campsite = makeCampsite("camp1", "Pine Valley"), on_back = {}, on_edit = {},
+                show_edit = false)
+        }
+
+        compose_rule.onNodeWithText("Pine Valley").assertIsDisplayed()
+        compose_rule.onNodeWithTag("campsiteQrCode").assertDoesNotExist()
     }
 }
