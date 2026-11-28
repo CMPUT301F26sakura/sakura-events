@@ -17,9 +17,6 @@ import androidx.compose.ui.unit.dp
  * Displays pending reservations and allows
  * entrants to decline them.
  *
- * AI Citation:
- * OpenAI ChatGPT, November 26, 2026.
- * Used to help design the screen and decline functionality.
  */
 @Composable
 fun lotteriesWonScreen(
@@ -28,7 +25,7 @@ fun lotteriesWonScreen(
 ) {
     val user = firestoreDriver.current_user
     var selected by remember {
-        mutableStateOf<Reservation?>(null)
+        mutableStateOf<String?>(null)
     }
     var message by remember {
         mutableStateOf("")
@@ -42,9 +39,10 @@ fun lotteriesWonScreen(
         return
     }
     // Get pending reservations belonging to the current user.
-    val reservations = firestoreDriver.reservations.values.filter {
-        it.getEntrant().UID == user.UID &&
-                it.getState() == "NEW"
+    // Get pending lottery offers for the current entrant.
+    val offers = firestoreDriver.lotteryOffers.filter {
+        it.value["entrant"] == user.UID &&
+                it.value["status"] == "PENDING"
     }
     LazyColumn( // Creates a scrollable list
         modifier = Modifier
@@ -60,14 +58,14 @@ fun lotteriesWonScreen(
             }
         }
         // Show a message if there are no reservations.
-        if (reservations.isEmpty()) {
+        if (offers.isEmpty()) {
             item {
-                Text("No pending reservations")
+                Text("No pending lottery offers")
             }
         }
 
 // Display each reservation in a separate card.
-        items(reservations, key = { it.UID }) { reservation ->
+        items(offers.entries.toList(), key = { it.key }) { offer ->
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -80,17 +78,24 @@ fun lotteriesWonScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Display the campsite name.
-                    Text(
-                        reservation.getCampsite().getName(),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    // Display the reservation dates.
-                    Text("Beginning: ${reservation.getBeginningDate()}")
-                    Text("Ending: ${reservation.getEndDate()}")
+                    // Display the campsites included in the offer.
+                    val campsiteIDs = offer.value["campsites"] as? List<*>
+                        ?: emptyList<String>()
 
+                    campsiteIDs.forEach { id ->
+                        val campsite = firestoreDriver.campsites[id.toString()]
+
+                        Text(
+                            campsite?.getName() ?: "Campsite",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+
+// Dates have not been selected yet.
+                    Text("Reservation dates not selected")
                     // Select the reservation to decline.
                     Button(
-                        onClick = { selected = reservation },
+                        onClick = { selected = offer.key },
                         enabled = !busy,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Red
@@ -104,7 +109,7 @@ fun lotteriesWonScreen(
         }
 
     }
-    selected?.let { reservation ->
+    selected?.let { offerUID ->
 
         AlertDialog(
             onDismissRequest = {
@@ -123,8 +128,8 @@ fun lotteriesWonScreen(
                     enabled = !busy, // Prevent repeated clicks
                     onClick = {
                         busy = true
-                        // Decline the selected reservation in Firebase.
-                        firestoreDriver.declineReservation(reservation.UID)
+                        // Decline the selected lottery offer in Firebase.
+                        firestoreDriver.declineLotteryOffer(offerUID)
                             .addOnSuccessListener {
                                 message = "Reservation declined successfully"
                                 selected = null // Close the dialog
