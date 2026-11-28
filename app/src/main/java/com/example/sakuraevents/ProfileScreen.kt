@@ -30,11 +30,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
@@ -80,6 +84,13 @@ fun profileScreen(
         Text("Roles: ${current_user?.getRole() ?: "Loading..."}")
         Spacer(modifier = Modifier.height(8.dp))
 
+        standardButton(
+            clicked = { nav_controller.navigate("Notifications") },
+            test_tag = "view_notifications_button",
+            button_text = "View Notifications"
+        )
+
+
         // US 01.13.01: Rate completed campsite reservations.
         if (current_user?.has_entrant_access == true) {
             firestore_driver.reservations.forEach { (uid, reservation) ->
@@ -97,24 +108,33 @@ fun profileScreen(
 
 
         if (current_user?.has_owner_access == true) {
-            Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {
-                Text("My Campsites")
-            }
+            standardButton(
+                clicked = {nav_controller.navigate("OwnerCampsites") },
+                test_tag = "OwnerCampsites_button",
+                button_text = "My Campsites"
+            )
+
         }
 
         if (current_user?.has_admin_access == true) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
             Text("Admin Dashboard", style = MaterialTheme.typography.headlineSmall)
 
-            Button(onClick = { nav_controller.navigate("AdminCampsites") }) {
-                Text("Manage Campsites")
-            }
-            Button(onClick = { nav_controller.navigate("AdminProfiles") }) {
-                Text("Manage Profiles")
-            }
-            Button(onClick = { nav_controller.navigate("AdminImages") }) {
-                Text("Manage Images")
-            }
+            standardButton(
+                clicked = { nav_controller.navigate("AdminCampsites") },
+                test_tag = "AdminCampsites_button",
+                button_text = "Manage Campsites"
+            )
+            standardButton(
+                clicked = { nav_controller.navigate("AdminProfiles") },
+                test_tag = "AdminProfiles_button",
+                button_text = "Manage Profiles"
+            )
+            standardButton(
+                clicked = { nav_controller.navigate("AdminImages") },
+                test_tag = "AdminImages_button",
+                button_text = "Manage Images"
+            )
         }
     }
 }
