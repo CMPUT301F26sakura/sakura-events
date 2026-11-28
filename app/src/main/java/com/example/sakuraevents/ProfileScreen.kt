@@ -18,7 +18,7 @@
  * - US 03.11.01: As an admin, I should be able to be a campsite owner and/or entrant with my admin profile.
  *
  * Outstanding Issues:
- * - Editing personal profile fields (name, email, phone number — US 01.07.03), deleting a profile
+ * - Editing personal profile fields (name, email, phone number â€” US 01.07.03), deleting a profile
  *   (US 01.08.01), managing profile images (US 01.08.02), and displaying/opting out of lottery
  *   notifications (US 01.03.01, US 01.03.02, US 01.10.01) are not yet wired into this screen's UI.
  */
@@ -91,6 +91,22 @@ fun profileScreen(
                 Text("Lotteries Won") // Display the button name
             }
         }
+
+        // US 01.13.01: Rate completed campsite reservations.
+        if (current_user?.has_entrant_access == true) {
+            firestore_driver.reservations.forEach { (uid, reservation) ->
+                if (reservation.getEntrant().UID == current_user.UID &&
+                    reservation.getState() == "COMPLETE"
+                ) {
+                    standardButton(
+                        clicked = { nav_controller.navigate("Rating/$uid") },
+                        test_tag = "RateCampsiteButton_$uid",
+                        button_text = "Rate Campsite"
+                    )
+                }
+            }
+        }
+
 
         if (current_user?.has_owner_access == true) {
             Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {

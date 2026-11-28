@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -34,7 +36,9 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
@@ -56,6 +60,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.roundToInt
 
 /**
@@ -83,6 +91,21 @@ fun searchScreen(
     val possible_tags = (campsites.map { it.tags }).flatten().toSet().sorted()
     val tag_filters = remember { mutableStateListOf<String>() }
     val selected_tags = remember { mutableStateListOf<String>() }
+    // Date filtering variables
+    // Name: Yangshun Li
+    // The following and later related function / lines of code were generated / modified by Google Gemini.
+    // Prompt: "How to add date filtering function" 2026-11-26
+    var date_filter_start by remember { mutableStateOf<String?>(null) }
+    var date_filter_end by remember { mutableStateOf<String?>(null) }
+    var selected_start_date by remember { mutableStateOf<String?>(null) }
+    var selected_end_date by remember { mutableStateOf<String?>(null) }
+    var show_date_picker by remember { mutableStateOf(false) }
+    val date_range_picker_state = rememberDateRangePickerState()
+    val date_format = remember {
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
     // Misc variables.
     var search_bar by remember { mutableStateOf("") }
     val showFilterScreen = rememberDrawerState(DrawerValue.Closed)
@@ -136,7 +159,48 @@ fun searchScreen(
 
                         item { Spacer(Modifier.padding(top = 16.dp)) }
                         selectableItems("Tags", possible_tags, selected_tags)
+                        item { Spacer(Modifier.padding(top = 16.dp)) }
+                        selectableItems("Tags", possible_tags, selected_tags)
+
+                        item { Text("Booking Date:", Modifier.padding(top = 16.dp)) }
+                        item {
+                            HorizontalDivider(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 6.dp),
+                                thickness = 2.dp
+                            )
+                        }
+                        item {
+                            val date_label = when {
+                                selected_start_date == null -> "Any date"
+                                selected_start_date == selected_end_date -> selected_start_date!!
+                                else -> "$selected_start_date to $selected_end_date"
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(text = date_label)
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    standardButton(
+                                        { show_date_picker = true },
+                                        "DateFilterButton",
+                                        "Select Date"
+                                    )
+                                    if (selected_start_date != null) {
+                                        TextButton(onClick = {
+                                            selected_start_date = null
+                                            selected_end_date = null
+                                        }) {
+                                            Text("Clear")
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
+
                     standardButton(
                         {
                             location_filters.clear()
@@ -144,6 +208,8 @@ fun searchScreen(
                             occupancy_filter = selected_occupancy.toInt()
                             tag_filters.clear()
                             tag_filters.addAll(selected_tags)
+                            date_filter_start = selected_start_date
+                            date_filter_end = selected_end_date
                             scope.launch { showFilterScreen.close() }
                         },
                         "ApplyFilterButton",
@@ -186,6 +252,8 @@ fun searchScreen(
                         selected_occupancy = occupancy_filter.toFloat()
                         selected_tags.clear()
                         selected_tags.addAll(tag_filters)
+                        selected_start_date = date_filter_start
+                        selected_end_date = date_filter_end
                         scope.launch { showFilterScreen.open() }
                     },
                     "FilterButton",
@@ -197,6 +265,8 @@ fun searchScreen(
                         location_filters.clear()
                         occupancy_filter = 0
                         tag_filters.clear()
+                        date_filter_start = null
+                        date_filter_end = null
                     },
                     "ClearFilters",
                     "Clear Filters")
@@ -206,12 +276,44 @@ fun searchScreen(
                     campsites
                 ) { campsite ->
                     Spacer(modifier = Modifier.height(12.dp))
-                    displayCampsites(nav_controller, campsite, location_filters, occupancy_filter, search_bar)
+                    displayCampsites(nav_controller, campsite, location_filters, occupancy_filter, search_bar,date_filter_start, date_filter_end)
                 }
             }
         }
     }
+    if (show_date_picker) {
+        DatePickerDialog(
+            onDismissRequest = { show_date_picker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val start_ms = date_range_picker_state.selectedStartDateMillis
+                        val end_ms = date_range_picker_state.selectedEndDateMillis ?: start_ms
+                        if (start_ms != null && end_ms != null) {
+                            selected_start_date = date_format.format(Date(start_ms))
+                            selected_end_date = date_format.format(Date(end_ms))
+                        }
+                        show_date_picker = false
+                    },
+                    enabled = date_range_picker_state.selectedStartDateMillis != null
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { show_date_picker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DateRangePicker(
+                state = date_range_picker_state,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
 }
+
 
 
 @Composable
@@ -221,10 +323,15 @@ private fun displayCampsites(
     location_filters: List<String>,
     occupancy_filter: Int,
     search_bar: String,
+    date_filter_start: String?,
+    date_filter_end: String?,
     modifier: Modifier = Modifier) {
+    val matches_date = date_filter_start == null || date_filter_end == null ||
+            campsite.booking_period_dates.any { it in date_filter_start..date_filter_end }
     if ((search_bar == "" || (search_bar.lowercase() in campsite.getName().lowercase())) &&
         (location_filters.isEmpty() || campsite.getLocation() in location_filters) &&
-        (campsite.getMaxOccupancy() >= occupancy_filter)) {
+        (campsite.getMaxOccupancy() >= occupancy_filter) &&
+        matches_date) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

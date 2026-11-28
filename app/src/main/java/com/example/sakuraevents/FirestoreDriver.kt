@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
  */
 class FirestoreDriver {
 
+    // Automatically update the UI when reservations change.
     private val _reservations = mutableStateMapOf<String, Reservation>()
     // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
@@ -195,14 +196,29 @@ class FirestoreDriver {
                         ratings = mutableListOf<Pair<Entrant, Float>>()
                     }
                     else {
-                        ratings = (campsite["ratings"] as List<*>).flatMap { map ->
-                            // Read all ratings from the map.
-                            (map as Map<*, *>).entries.mapNotNull { entry ->
-                                // Find the entrant who submitted the rating.
-                                val entrant = _entrants[entry.key as? String]
-                                val rating = (entry.value as? Number)?.toFloat()
-                                // Only use valid ratings.
-                                if (entrant != null && rating != null) { entrant to rating } else { null } } }.toMutableList() }
+                        ratings = (campsite["ratings"] as List<*>).mapNotNull { map ->
+                            val ratingMap = map as Map<*, *>
+                            val entrantUID = ratingMap["UID"] as? String
+                                ?: return@mapNotNull null
+                            val entrant = _entrants[entrantUID]
+                                ?: return@mapNotNull null
+                            val score = ratingMap["score"] as? Number
+                                ?: return@mapNotNull null
+
+                            entrant to score.toFloat()
+                        }.toMutableList()
+                    }
+                    val reviews = mutableMapOf<String, String>()
+
+                    (campsite["ratings"] as? List<*>)?.forEach { item ->
+                        val ratingMap = item as? Map<*, *>
+                        val uid = ratingMap?.get("UID") as? String
+                        val review = ratingMap?.get("review") as? String
+
+                        if (uid != null && !review.isNullOrBlank()) {
+                            reviews[uid] = review
+                        }
+                    }
                     _campsites[document.id] = Campsite(
                         UID = document.id,
                         name = campsite["name"] as String,
@@ -216,6 +232,7 @@ class FirestoreDriver {
                         _reservations = mutableListOf<Reservation>(),
                         // The above is created without values because the reservations themselves handle adding themselves to this list.
                         _ratings = ratings,
+                        _reviews = reviews,
                         average_rating = (campsite["average_rating"] as String).toFloat(),
                         _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { (it as? String)?.let { uid -> _all_users[uid] } }.toMutableList(),
                         waitlist_capacity = (campsite["waitlist_capacity"] as Long).toInt()
@@ -267,6 +284,8 @@ class FirestoreDriver {
                           reservation_state = ReservationState.entries.find {
                               it.name == reservation["reservation_state"]
                           } ?: ReservationState.NEW
+
+
                     )
                 }
             }
@@ -447,11 +466,43 @@ class FirestoreDriver {
             "price" to campsite.getPrice(),
             "tags" to campsite.tags,
             "booking_period_dates" to campsite.booking_period_dates,
-            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
+            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating, "review" to (campsite.reviews[entrant.UID] ?: "")) },
             "average_rating" to campsite.getAvgRating(),
             "waiting_list" to campsite.waiting_list.map { it.UID },
             "waitlist_capacity" to campsite.getWaitlistCapacity())
         return campsites_ref.document(UID).set(firestore_format)
+    }
+
+    /**
+     * Reads the latest ratings directly from Firebase.
+     * Checks whether the entrant has already rated.
+     * Preserves other entrants' ratings and reviews.
+     * Recalculates the average rating.
+     * Updates only the rating related fields instead of the entire campsite.
+     */
+    fun submitRating(
+        campsiteUID: String, entrantUID: String, score: Float, review: String
+    ): Task<Void> {
+        val campsiteRef = campsites_ref.document(campsiteUID)
+        return db.runTransaction<Void> { transaction ->
+            val snapshot = transaction.get(campsiteRef)
+            val ratings = (snapshot.get("ratings") as? List<*>)
+                .orEmpty().map { it as Map<*, *> }.toMutableList()
+            if (ratings.any { it["UID"] == entrantUID }) {
+                throw IllegalStateException("You have already rated this campsite.")
+            }
+            require(score in 1.0f..5.0f)
+            ratings.add(
+                mapOf("UID" to entrantUID, "score" to score, "review" to review.trim()))
+            val average = ratings.map { (it["score"] as Number).toDouble() }.average()
+            transaction.update(
+                campsiteRef, mapOf("ratings" to ratings,
+                    "average_rating" to average.toString()
+                )
+            )
+
+            null
+        }
     }
 
     // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
@@ -472,7 +523,7 @@ class FirestoreDriver {
             "price" to campsite.getPrice(),
             "tags" to campsite.tags,
             "booking_period_dates" to campsite.booking_period_dates,
-            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
+            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating,"review" to(campsite.reviews[entrant.UID] ?: "")) },
             "average_rating" to campsite.getAvgRating(),
             "waiting_list" to campsite.waiting_list.map { it.UID },
             "waitlist_capacity" to campsite.getWaitlistCapacity())
