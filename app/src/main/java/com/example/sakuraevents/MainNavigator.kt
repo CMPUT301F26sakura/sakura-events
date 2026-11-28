@@ -110,7 +110,6 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         "AdminProfiles",
         "AdminImages",
         "OwnerCampsites",
-        "OwnerLotteries",
     )
 
     Scaffold(
