@@ -159,8 +159,7 @@ fun searchScreen(
 
                         item { Spacer(Modifier.padding(top = 16.dp)) }
                         selectableItems("Tags", possible_tags, selected_tags)
-                        item { Spacer(Modifier.padding(top = 16.dp)) }
-                        selectableItems("Tags", possible_tags, selected_tags)
+
 
                         item { Text("Booking Date:", Modifier.padding(top = 16.dp)) }
                         item {
