@@ -6,6 +6,7 @@ package com.example.sakuraevents
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -32,7 +33,7 @@ import androidx.compose.ui.graphics.Color
  * @param campsite_uid the UID of the campsite to show.
  */
 @Composable
-fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String) {
+fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String, inner_padding: PaddingValues) {
     // Name: Devesh Darji
     // The following function / lines of code were generated / modified by Google Gemini Neon Model.
     // Prompt: "How do I gate Edit, Delete, and Waitlist controls on CampsiteDetailsScreen by user role so owners edit their own sites, admins manage all sites, and entrants join waitlists?" 2026-11-22
@@ -65,7 +66,8 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
         on_send_notification = { firestore_driver.addNotification(it) },
         // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show campsite QR code image with zxing for US 02.02.01", 2026-11-26
         // Only the owner of this campsite sees its QR code (US 02.02.01).
-        show_qr_code = is_owner_of_site
+        show_qr_code = is_owner_of_site,
+        inner_padding = inner_padding
     )
 }
 
@@ -93,89 +95,84 @@ fun campsiteDetailsContent(
     on_waitlist_changed: (Campsite) -> Unit = {},
     sender: CampsiteOwner? = null,
     on_send_notification: (Notification) -> Unit = {},
-    show_qr_code: Boolean = false
+    show_qr_code: Boolean = false,
+    inner_padding: PaddingValues
 ) {
-    Scaffold(
-        topBar = { ownerTopBar("Campsite Details", on_back) },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { inner_padding ->
-        Column(
-            modifier = Modifier
-                .padding(inner_padding)
-                .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (campsite == null) {
-                Text("Campsite not found. It may still be loading.")
-                return@Column
-            }
 
-            detailRow("Name", campsite.getName())
-            detailRow("Location", campsite.getLocation())
-            detailRow("Description and amenities", campsite.getDescription().ifBlank { "None" })
-            detailRow("Max occupancy", campsite.getMaxOccupancy().toString())
-            detailRow("Price per night", "$%.2f".format(campsite.getPrice()))
-            detailRow("Tags", if (campsite.tags.isEmpty()) "None" else campsite.tags.joinToString(", "))
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (campsite == null) {
+            Text("Campsite not found. It may still be loading.")
+            return@Column
+        }
 
-            if (show_edit) {
-                CampsiteBookingPeriodField(
-                    campsite = campsite,
-                    onCampsiteChanged = on_campsite_changed
-                )
-                // Waitlist capacity (US 02.04.07)
-                WaitlistCapacityField(
-                    campsite = campsite,
-                    onCapacityChanged = on_campsite_changed
-                )
-            }
+        detailRow("Name", campsite.getName())
+        detailRow("Location", campsite.getLocation())
+        detailRow("Description and amenities", campsite.getDescription().ifBlank { "None" })
+        detailRow("Max occupancy", campsite.getMaxOccupancy().toString())
+        detailRow("Price per night", "$%.2f".format(campsite.getPrice()))
+        detailRow("Tags", if (campsite.tags.isEmpty()) "None" else campsite.tags.joinToString(", "))
 
-            // Message the waitlist (US 02.10.01)
-            if (sender != null) {
-                SendWaitlistNotificationSection(
-                    campsite = campsite,
-                    sender = sender,
-                    on_send = on_send_notification
-                )
-            }
+        if (show_edit) {
+            CampsiteBookingPeriodField(
+                campsite = campsite,
+                onCampsiteChanged = on_campsite_changed
+            )
+            // Waitlist capacity (US 02.04.07)
+            WaitlistCapacityField(
+                campsite = campsite,
+                onCapacityChanged = on_campsite_changed
+            )
+        }
 
-            if (entrant != null) {
-                JoinLotterySection(
-                    campsite = campsite,
-                    entrant = entrant,
-                    onCampsiteChanged = on_campsite_changed
-                )
-            }
+        // Message the waitlist (US 02.10.01)
+        if (sender != null) {
+            SendWaitlistNotificationSection(
+                campsite = campsite,
+                sender = sender,
+                on_send = on_send_notification
+            )
+        }
 
-            // Name: Devesh Darji
-            // The following function / lines of code were generated / modified by Google Gemini Neon Model.
-            // Prompt: "How do I display Edit/Delete buttons and the entrant WaitlistButton together when a user has multiple roles?" 2026-11-22
-            // Conditionally rendered the Edit and Delete buttons in a Row and displayed WaitlistButton whenever entrant access is granted.
-            if (show_edit || show_delete) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (show_edit) {
-                        Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
-                            Text("Edit")
-                        }
-                    }
-                    if (show_delete) {
-                        Button(
-                            onClick = { on_delete(campsite) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                            modifier = Modifier.testTag("deleteCampsiteButton")
-                        ) {
-                            Text("Delete")
-                        }
+        if (entrant != null) {
+            JoinLotterySection(
+                campsite = campsite,
+                entrant = entrant,
+                onCampsiteChanged = on_campsite_changed
+            )
+        }
+
+        // Name: Devesh Darji
+        // The following function / lines of code were generated / modified by Google Gemini Neon Model.
+        // Prompt: "How do I display Edit/Delete buttons and the entrant WaitlistButton together when a user has multiple roles?" 2026-11-22
+        // Conditionally rendered the Edit and Delete buttons in a Row and displayed WaitlistButton whenever entrant access is granted.
+        if (show_edit || show_delete) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (show_edit) {
+                    Button(onClick = on_edit, modifier = Modifier.testTag("editCampsiteButton")) {
+                        Text("Edit")
                     }
                 }
+                if (show_delete) {
+                    standardButton(
+                        clicked = { on_delete(campsite)},
+                        test_tag = "deleteCampsiteButton",
+                        button_text = "delete",
+                        button_colour = BUTTON_COLOURS.RED)
+                }
             }
+        }
 
-            // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show campsite QR code image with zxing for US 02.02.01", 2026-11-26
-            // Campsite QR code (US 02.02.01), drawn by CampsiteQrCode.kt.
-            if (show_qr_code) {
-                CampsiteQrCodeSection(campsite = campsite)
-            }
+        // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show campsite QR code image with zxing for US 02.02.01", 2026-11-26
+        // Campsite QR code (US 02.02.01), drawn by CampsiteQrCode.kt.
+        if (show_qr_code) {
+            CampsiteQrCodeSection(campsite = campsite)
+        }
 //            if (entrant != null) {
 //                WaitlistButton(
 //                    campsite = campsite,
@@ -183,8 +180,8 @@ fun campsiteDetailsContent(
 //                    onWaitlistChanged = on_waitlist_changed
 //                )
 //            }
-        }
     }
+
 }
 
 /**

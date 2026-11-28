@@ -112,7 +112,6 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         "OwnerCampsites",
         "OwnerLotteries",
         "CampsiteDetails/{uid}",
-        "CampsiteDetailScreen/{UID}",
         "CampsiteForm?uid={uid}"
     )
 
@@ -201,7 +200,8 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
                     campsiteDetailsScreen(
                         nav_controller,
                         firestoreDriver,
-                        entry.arguments?.getString("uid") ?: ""
+                        entry.arguments?.getString("uid") ?: "",
+                        innerPadding
                     )
                 }
             }
@@ -231,7 +231,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             ) { uid ->
                 val UID = uid.arguments?.getString("UID") ?: ""
                 Box(modifier = Modifier.padding(innerPadding)) {
-                    campsiteDetailsScreen(nav_controller, firestoreDriver, UID)
+                    campsiteDetailsScreen(nav_controller, firestoreDriver, UID, innerPadding)
                 }
             }
         }
