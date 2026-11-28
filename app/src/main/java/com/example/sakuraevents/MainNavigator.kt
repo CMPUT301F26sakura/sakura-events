@@ -62,6 +62,21 @@ enum class COLOURS(val colour: Color) {
     DARKGREEN(Color(0xFF419874)),
 }
 
+enum class BUTTON_COLOURS(val buttonColour: ButtonColors) {
+    NORMAL(ButtonColors(
+        containerColor = COLOURS.DARKGREEN.colour,
+        contentColor = Color.White,
+        disabledContainerColor = Color.DarkGray,
+        disabledContentColor = Color.White
+    )),
+    RED(ButtonColors(
+        containerColor = Color.Red,
+        contentColor = Color.White,
+        disabledContainerColor = Color.DarkGray,
+        disabledContentColor = Color.White
+    ))
+}
+
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
     val nav_controller = rememberNavController()
@@ -81,6 +96,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         val blocked =
             (current_location == "Search" && !current_user.has_entrant_access) ||
                     (current_location == "OwnerCampsites" && !current_user.has_owner_access) ||
+                    (current_location == "OwnerLotteries" && !current_user.has_owner_access) ||
                     (current_location?.startsWith("CampsiteForm") == true && !current_user.has_owner_access && !current_user.has_admin_access) ||
                     (current_location in admin_routes && !current_user.has_admin_access)
         if (blocked) {
@@ -94,6 +110,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         "AdminProfiles",
         "AdminImages",
         "OwnerCampsites",
+        "OwnerLotteries",
         "CampsiteDetails/{uid}",
         "CampsiteDetailScreen/{UID}",
         "CampsiteForm?uid={uid}"
@@ -169,6 +186,14 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             composable("OwnerCampsites") {
                 Box(modifier = Modifier.padding(innerPadding)) {
                     ownerCampsiteListScreen(nav_controller, firestoreDriver)
+                }
+            }
+            // Name: Arham Ahmed
+            // Written with help from Anthropic, Claude (Claude Code), "Build owner lottery listing screen for US 02.04.01-02.04.03 and US 02.04.06", 2026-11-26
+            // Owner lottery listings (US 02.04.01, US 02.04.02, US 02.04.03, US 02.04.06)
+            composable("OwnerLotteries") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    ownerLotteryScreen(nav_controller, firestoreDriver)
                 }
             }
             composable("CampsiteDetails/{uid}") { entry ->
@@ -345,16 +370,11 @@ fun topBar(nav_controller: NavController, current_location: String?) {
 }
 
 @Composable
-fun standardButton(clicked: () -> Unit, test_tag: String, button_text: String, icon: ImageVector? = null) {
+fun standardButton(clicked: () -> Unit, test_tag: String, button_text: String, icon: ImageVector? = null, button_colour: BUTTON_COLOURS = BUTTON_COLOURS.NORMAL) {
     Button(
         onClick = { clicked() },
         Modifier.testTag((test_tag)),
-        colors = ButtonColors(
-            containerColor = COLOURS.DARKGREEN.colour,
-            contentColor = Color.White,
-            disabledContainerColor = Color.DarkGray,
-            disabledContentColor = Color.White
-        ),
+        colors = button_colour.buttonColour,
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
     ) {
         if (icon != null) {

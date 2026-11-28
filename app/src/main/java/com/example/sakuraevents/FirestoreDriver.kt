@@ -47,7 +47,14 @@ class FirestoreDriver {
     private val _notifications = mutableStateMapOf<String, Notification>()
     // Raw notification documents, kept so notifications can be rebuilt once users and campsites have loaded.
     private val _notification_docs = mutableMapOf<String, Map<String, Any>>()
-    //private val _lotteries = mutableMapOf<String, Lottery>()
+    // Name: Arham Ahmed
+    // The lottery lines below were written with help from Anthropic, Claude (Claude Code), "Save and load owner lottery listings in Firestore", 2026-11-26
+    // Lotteries (US 02.04.01, 02.04.02, 02.04.03, 02.04.06). Lottery has no owner field, so the owner of each
+    // lottery is kept in _lottery_owner_uids, the same way _user_owned_campsite_uids works for campsites.
+    private val _lotteries = mutableStateMapOf<String, Lottery>()
+    private val _lottery_owner_uids = mutableStateMapOf<String, String>()
+    // Raw lottery documents, kept so lotteries can be rebuilt once their campsites have loaded.
+    private val _lottery_docs = mutableMapOf<String, Map<String, Any>>()
 
     val reservations: Map<String, Reservation> get() = _reservations
     val campsites: Map<String, Campsite> get() = _campsites
@@ -55,7 +62,7 @@ class FirestoreDriver {
     val owners: Map<String, CampsiteOwner> get() = _owners
     val admins: Map<String, Admin> get() = _admins
     val notifications: Map<String, Notification> get() = _notifications
-    // val lotteries: Map<String, Lottery> get() = _lotteries
+    val lotteries: Map<String, Lottery> get() = _lotteries
 
     val db = Firebase.firestore
     // private val auth = FirebaseAuth.getInstance().signInAnonymously()
@@ -227,6 +234,22 @@ class FirestoreDriver {
                 }
             }
             rebuildNotifications()
+            rebuildLotteries()
+        }
+
+        // Name: Arham Ahmed
+        // Written with help from Anthropic, Claude (Claude Code), "Save and load owner lottery listings in Firestore", 2026-11-26
+        // Loads lotteries (US 02.04.01, US 02.04.02, US 02.04.03, US 02.04.06).
+        lotteries_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            _lottery_docs.clear()
+            snapshot?.documents?.forEach { document ->
+                val data = document.data ?: return@forEach
+                _lottery_docs[document.id] = data
+            }
+            rebuildLotteries()
         }
 
         // Loads notifications (US 01.03.01, US 01.03.02, US 02.10.01, US 02.10.02).
@@ -487,6 +510,95 @@ class FirestoreDriver {
     fun getNotificationsSentBy(uid: String): List<Notification> {
         return _notifications.values
             .filter { it.getSender().UID == uid }
+            .sortedByDescending { it.UID.toIntOrNull() ?: 0 }
+    }
+
+    // Name: Arham Ahmed
+    // The lottery functions below were written with help from Anthropic, Claude (Claude Code), "Save and load owner lottery listings in Firestore", 2026-11-26
+    /**
+     * Turns the stored lottery documents into Lottery objects. Called whenever lotteries or
+     * campsites change, because a lottery needs its campsites to be loaded first. Campsite UIDs
+     * that no longer exist (for example, a deleted campsite) are skipped.
+     */
+    private fun rebuildLotteries() {
+        _lotteries.clear()
+        _lottery_owner_uids.clear()
+        _lottery_docs.forEach { (uid, data) ->
+            val lottery = Lottery(
+                UID = uid,
+                capacity = (data["capacity"] as? Number)?.toInt() ?: 0,
+                start_time = data["start_time"] as? String ?: "",
+                end_time = data["end_time"] as? String ?: ""
+            )
+            (data["campsites"] as? List<*>)
+                ?.mapNotNull { (it as? String)?.let { campsite_uid -> _campsites[campsite_uid] } }
+                ?.forEach { lottery.addCampsite(it) }
+            _lotteries[uid] = lottery
+            _lottery_owner_uids[uid] = data["owner"] as? String ?: ""
+        }
+    }
+
+    /**
+     * Converts a lottery into the map stored in Firestore. Campsites and the owner are stored by UID.
+     *
+     * @param lottery the Lottery to convert.
+     * @param owner_uid the UID of the campsite owner who created the lottery.
+     * @return the Firestore form of the lottery.
+     */
+    private fun lotteryToFirestore(lottery: Lottery, owner_uid: String): Map<String, Any> {
+        return mapOf(
+            "campsites" to lottery.campsites_list.map { it.UID },
+            "capacity" to lottery.getCapacity(),
+            "start_time" to lottery.getStartTime(),
+            "end_time" to lottery.getEndTime(),
+            "owner" to owner_uid)
+    }
+
+    /**
+     * Saves a new lottery listing to Firestore (US 02.04.01, US 02.04.02, US 02.04.03). If the
+     * lottery has no UID yet, the next free numeric UID is used.
+     *
+     * @param lottery the Lottery to save.
+     * @param owner_uid the UID of the campsite owner who is listing the lottery.
+     * @return the Firestore Task for the save.
+     */
+    fun addLottery(lottery: Lottery, owner_uid: String): Task<Void> {
+        val UID: String = if (lottery.UID.isNotBlank()) lottery.UID else generateNextUid(_lottery_docs.keys)
+        return lotteries_ref.document(UID).set(lotteryToFirestore(lottery, owner_uid))
+    }
+
+    /**
+     * Saves changes to a lottery listing that already exists in Firestore (US 02.04.06),
+     * replacing its stored document. The lottery keeps its UID.
+     *
+     * @param lottery the edited Lottery. Its UID must not be blank.
+     * @param owner_uid the UID of the campsite owner who owns the lottery.
+     * @return the Firestore Task for the save.
+     */
+    fun updateLottery(lottery: Lottery, owner_uid: String): Task<Void> {
+        return lotteries_ref.document(lottery.UID).set(lotteryToFirestore(lottery, owner_uid))
+    }
+
+    /**
+     * Deletes a lottery listing from Firestore. The campsites in it are not changed.
+     *
+     * @param lottery the Lottery to delete.
+     * @return the Firestore Task for the delete.
+     */
+    fun deleteLottery(lottery: Lottery): Task<Void> {
+        return lotteries_ref.document(lottery.UID).delete()
+    }
+
+    /**
+     * Returns the lotteries a campsite owner listed, newest first.
+     *
+     * @param uid the owner's UID, or null if nobody is signed in.
+     * @return the lotteries owned by this user, or an empty list.
+     */
+    fun getLotteriesOwnedBy(uid: String?): List<Lottery> {
+        if (uid == null) return emptyList()
+        return _lotteries.values
+            .filter { _lottery_owner_uids[it.UID] == uid }
             .sortedByDescending { it.UID.toIntOrNull() ?: 0 }
     }
 
