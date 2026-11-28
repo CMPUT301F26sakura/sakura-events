@@ -25,6 +25,8 @@
 
 package com.example.sakuraevents
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,19 +36,33 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 /**
@@ -70,71 +86,227 @@ fun profileScreen(
     innerPadding: PaddingValues
 ) {
     val current_user = firestore_driver.current_user
+    var show_edit by remember { mutableStateOf(false) }
+    var name_input by remember { mutableStateOf("") }
+    var email_input by remember { mutableStateOf("") }
+    var phone_input by remember { mutableStateOf("") }
+    var name_error by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text("Device UID: ${firestore_driver.current_user_uid ?: "Signing in..."}")
-        Text("Roles: ${current_user?.getRole() ?: "Loading..."}")
-        Spacer(modifier = Modifier.height(8.dp))
+    //Name: Yangshun
+    // // Name: Arham Ahmed
+    //// Written with help from Gemini, "match the displaying text with UI ", 2026-11-28
 
-        standardButton(
-            clicked = { nav_controller.navigate("Notifications") },
-            test_tag = "view_notifications_button",
-            button_text = "View Notifications"
-        )
+        val slate_navy = Color(0xFF3E4A59)
+        val card_green = Color(0xFF5FA360)
 
 
-        // US 01.13.01: Rate completed campsite reservations.
-        if (current_user?.has_entrant_access == true) {
-            firestore_driver.reservations.forEach { (uid, reservation) ->
-                if (reservation.getEntrant().UID == current_user.UID &&
-                    reservation.getState() == "COMPLETE"
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Welcome ${current_user?.getName()?.ifBlank { "Not set" } ?: "Loading..."}!",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = slate_navy
+            )
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = Color.Transparent,
+                border = BorderStroke(2.dp, slate_navy)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(card_green)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    standardButton(
-                        clicked = { nav_controller.navigate("Rating/$uid") },
-                        test_tag = "RateCampsiteButton_$uid",
-                        button_text = "Rate Campsite"
+                    ProfileFieldLine(
+                        label = "Roles:",
+                        value = current_user?.getRole() ?: "Loading..."
+                    )
+                    ProfileFieldLine(
+                        label = "Email:",
+                        value = current_user?.getEmail()?.ifBlank { "Not set" } ?: "Loading..."
+                    )
+                    ProfileFieldLine(
+                        label = "Phone:",
+                        value = current_user?.getPhoneNumber()?.ifBlank { "Not set" }
+                            ?: "Loading..."
+                    )
+                    ProfileFieldLine(
+                        label = "Device UID:",
+                        value = firestore_driver.current_user_uid ?: "Signing in..."
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            standardButton(
+                clicked = { nav_controller.navigate("Notifications") },
+                test_tag = "view_notifications_button",
+                button_text = "View Notifications"
+            )
+
+            standardButton(
+                clicked = {
+                    if (current_user != null) {
+                        name_input = current_user.getName()
+                        email_input = current_user.getEmail()
+                        phone_input = current_user.getPhoneNumber()
+                        name_error = false
+                        show_edit = true
+                    }
+                },
+                test_tag = "edit_profile_button",
+                button_text = "Edit Profile"
+            )
+
+
+            // US 01.13.01: Rate completed campsite reservations.
+            if (current_user?.has_entrant_access == true) {
+                firestore_driver.reservations.forEach { (uid, reservation) ->
+                    if (reservation.getEntrant().UID == current_user.UID &&
+                        reservation.getState() == "COMPLETE"
+                    ) {
+                        standardButton(
+                            clicked = { nav_controller.navigate("Rating/$uid") },
+                            test_tag = "RateCampsiteButton_$uid",
+                            button_text = "Rate Campsite"
+                        )
+                    }
+                }
+            }
+
+
+            if (current_user?.has_owner_access == true) {
+                standardButton(
+                    clicked = { nav_controller.navigate("OwnerCampsites") },
+                    test_tag = "OwnerCampsites_button",
+                    button_text = "My Campsites"
+                )
+
+            }
+
+            if (current_user?.has_admin_access == true) {
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                Text("Admin Dashboard", style = MaterialTheme.typography.headlineSmall)
+
+                standardButton(
+                    clicked = { nav_controller.navigate("AdminCampsites") },
+                    test_tag = "AdminCampsites_button",
+                    button_text = "Manage Campsites"
+                )
+                standardButton(
+                    clicked = { nav_controller.navigate("AdminProfiles") },
+                    test_tag = "AdminProfiles_button",
+                    button_text = "Manage Profiles"
+                )
+                standardButton(
+                    clicked = { nav_controller.navigate("AdminImages") },
+                    test_tag = "AdminImages_button",
+                    button_text = "Manage Images"
+                )
+            }
+        }
+        if (show_edit && current_user != null) {
+            AlertDialog(
+                onDismissRequest = { show_edit = false },
+                title = { Text("Edit Profile") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = name_input,
+                            onValueChange = {
+                                name_input = it
+                                name_error = false
+                            },
+                            label = { Text("Name") },
+                            singleLine = true,
+                            isError = name_error,
+                            supportingText = { if (name_error) Text("Name is required") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("edit_name_input")
+                        )
+                        OutlinedTextField(
+                            value = email_input,
+                            onValueChange = { email_input = it },
+                            label = { Text("Email") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("edit_email_input")
+                        )
+                        OutlinedTextField(
+                            value = phone_input,
+                            onValueChange = { phone_input = it },
+                            label = { Text("Phone Number") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("edit_phone_input")
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (name_input.isBlank()) {
+                                name_error = true
+                                return@TextButton
+                            }
+                            current_user.setName(name_input.trim())
+                            current_user.setEmail(email_input.trim())
+                            current_user.setPhoneNumber(phone_input.trim())
+                            firestore_driver.addEntrant(current_user)
+                            show_edit = false
+                        },
+                        modifier = Modifier.testTag("save_profile_button")
+                    ) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { show_edit = false },
+                        modifier = Modifier.testTag("cancel_edit_profile_button")
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
 
 
-        if (current_user?.has_owner_access == true) {
-            standardButton(
-                clicked = {nav_controller.navigate("OwnerCampsites") },
-                test_tag = "OwnerCampsites_button",
-                button_text = "My Campsites"
-            )
 
-        }
-
-        if (current_user?.has_admin_access == true) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            Text("Admin Dashboard", style = MaterialTheme.typography.headlineSmall)
-
-            standardButton(
-                clicked = { nav_controller.navigate("AdminCampsites") },
-                test_tag = "AdminCampsites_button",
-                button_text = "Manage Campsites"
-            )
-            standardButton(
-                clicked = { nav_controller.navigate("AdminProfiles") },
-                test_tag = "AdminProfiles_button",
-                button_text = "Manage Profiles"
-            )
-            standardButton(
-                clicked = { nav_controller.navigate("AdminImages") },
-                test_tag = "AdminImages_button",
-                button_text = "Manage Images"
-            )
-        }
-    }
+}
+@Composable
+private fun ProfileFieldLine(label: String, value: String) {
+    Text(
+        text = buildAnnotatedString {
+            withStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline
+                )
+            ) {
+                append(label)
+            }
+            append(" ")
+            append(value)
+        },
+        color = Color.White,
+        fontSize = 16.sp
+    )
 }
