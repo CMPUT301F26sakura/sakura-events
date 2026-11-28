@@ -192,88 +192,83 @@ fun campsiteFormContent(
     var new_tag by remember { mutableStateOf("") }
     var error_message by remember { mutableStateOf<String?>(null) }
 
-    Scaffold(
-        topBar = { ownerTopBar(if (is_editing) "Edit Campsite" else "Register Campsite", on_back) },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { inner_padding ->
-        Column(
-            modifier = Modifier
-                .padding(inner_padding)
-                .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (is_editing && campsite == null) {
-                Text("Campsite not found. It may still be loading.")
-                return@Column
-            }
 
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") },
-                singleLine = true, modifier = Modifier.fillMaxWidth().testTag("campsiteNameInput"))
-            OutlinedTextField(value = location, onValueChange = { location = it }, label = { Text("Location") },
-                singleLine = true, modifier = Modifier.fillMaxWidth().testTag("campsiteLocationInput"))
-            OutlinedTextField(value = description, onValueChange = { description = it },
-                label = { Text("Description and amenities") }, minLines = 3,
-                modifier = Modifier.fillMaxWidth().testTag("campsiteDescriptionInput"))
-            OutlinedTextField(value = max_occupancy_text, onValueChange = { max_occupancy_text = it },
-                label = { Text("Max occupancy") }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth().testTag("maxOccupancyInput"))
-            OutlinedTextField(value = price_text, onValueChange = { price_text = it },
-                label = { Text("Price per night") }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth().testTag("priceInput"))
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (is_editing && campsite == null) {
+            Text("Campsite not found. It may still be loading.")
+            return@Column
+        }
 
-            // Tags: type one and press Add; tap a tag to remove it.
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = new_tag, onValueChange = { new_tag = it }, label = { Text("Tag") },
-                    singleLine = true, modifier = Modifier.weight(1f).testTag("tagInput"))
-                Button(
-                    onClick = {
-                        val tag = new_tag.trim()
-                        if (tag.isNotEmpty() && !tags.contains(tag)) tags.add(tag)
-                        new_tag = ""
-                    },
-                    modifier = Modifier.testTag("addTagButton")
-                ) {
-                    Text("Add")
-                }
-            }
-            Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                tags.forEach { tag ->
-                    AssistChip(
-                        onClick = { tags.remove(tag) },
-                        label = { Text(tag) },
-                        trailingIcon = { Icon(Icons.Default.Close, contentDescription = "Remove $tag") },
-                        modifier = Modifier.testTag("tagChip_$tag")
-                    )
-                }
-            }
+        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") },
+            singleLine = true, modifier = Modifier.fillMaxWidth().testTag("campsiteNameInput"))
+        OutlinedTextField(value = location, onValueChange = { location = it }, label = { Text("Location") },
+            singleLine = true, modifier = Modifier.fillMaxWidth().testTag("campsiteLocationInput"))
+        OutlinedTextField(value = description, onValueChange = { description = it },
+            label = { Text("Description and amenities") }, minLines = 3,
+            modifier = Modifier.fillMaxWidth().testTag("campsiteDescriptionInput"))
+        OutlinedTextField(value = max_occupancy_text, onValueChange = { max_occupancy_text = it },
+            label = { Text("Max occupancy") }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth().testTag("maxOccupancyInput"))
+        OutlinedTextField(value = price_text, onValueChange = { price_text = it },
+            label = { Text("Price per night") }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth().testTag("priceInput"))
 
-            error_message?.let {
-                Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("formErrorText"))
-            }
-
+        // Tags: type one and press Add; tap a tag to remove it.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(value = new_tag, onValueChange = { new_tag = it }, label = { Text("Tag") },
+                singleLine = true, modifier = Modifier.weight(1f).testTag("tagInput"))
             Button(
                 onClick = {
-                    error_message = validateCampsiteForm(name, location, max_occupancy_text, price_text)
-                    if (error_message != null) return@Button
-                    error_message = on_save(
-                        CampsiteFormValues(
-                            name = name.trim(),
-                            location = location.trim(),
-                            description = description.trim(),
-                            max_occupancy = max_occupancy_text.trim().toInt(),
-                            price = price_text.trim().toFloat(),
-                            tags = tags.toList()
-                        )
-                    )
+                    val tag = new_tag.trim()
+                    if (tag.isNotEmpty() && !tags.contains(tag)) tags.add(tag)
+                    new_tag = ""
                 },
-                modifier = Modifier.testTag("saveCampsiteButton")
+                modifier = Modifier.testTag("addTagButton")
             ) {
-                Text(if (is_editing) "Save changes" else "Register")
+                Text("Add")
             }
+        }
+        Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            tags.forEach { tag ->
+                AssistChip(
+                    onClick = { tags.remove(tag) },
+                    label = { Text(tag) },
+                    trailingIcon = { Icon(Icons.Default.Close, contentDescription = "Remove $tag") },
+                    modifier = Modifier.testTag("tagChip_$tag")
+                )
+            }
+        }
+
+        error_message?.let {
+            Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("formErrorText"))
+        }
+
+        Button(
+            onClick = {
+                error_message = validateCampsiteForm(name, location, max_occupancy_text, price_text)
+                if (error_message != null) return@Button
+                error_message = on_save(
+                    CampsiteFormValues(
+                        name = name.trim(),
+                        location = location.trim(),
+                        description = description.trim(),
+                        max_occupancy = max_occupancy_text.trim().toInt(),
+                        price = price_text.trim().toFloat(),
+                        tags = tags.toList()
+                    )
+                )
+            },
+            modifier = Modifier.testTag("saveCampsiteButton")
+        ) {
+            Text(if (is_editing) "Save changes" else "Register")
         }
     }
 }
