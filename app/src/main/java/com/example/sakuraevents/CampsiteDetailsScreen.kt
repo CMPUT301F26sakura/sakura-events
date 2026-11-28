@@ -62,7 +62,10 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
         // Written with help from Anthropic, Claude, "Owner waitlist messages and capacity on campsite details", 2026-11-25
         // Owners/admins managing this campsite can set the waitlist capacity and message the waitlist.
         sender = if (can_manage) current_user else null,
-        on_send_notification = { firestore_driver.addNotification(it) }
+        on_send_notification = { firestore_driver.addNotification(it) },
+        // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show campsite QR code image with zxing for US 02.02.01", 2026-11-26
+        // Only the owner of this campsite sees its QR code (US 02.02.01).
+        show_qr_code = is_owner_of_site
     )
 }
 
@@ -75,6 +78,7 @@ fun campsiteDetailsScreen(nav_controller: NavController, firestore_driver: Fires
  * @param on_edit what to do when "Edit" is tapped.
  * @param sender the owner managing this campsite, or null; when set, the "Message your waitlist" form is shown.
  * @param on_send_notification called with a new waitlist Notification, e.g. to save it to Firestore.
+ * @param show_qr_code true to show the campsite's QR code image (US 02.02.01), for the campsite's owner.
  */
 @Composable
 fun campsiteDetailsContent(
@@ -88,7 +92,8 @@ fun campsiteDetailsContent(
     entrant: Entrant? = null,
     on_waitlist_changed: (Campsite) -> Unit = {},
     sender: CampsiteOwner? = null,
-    on_send_notification: (Notification) -> Unit = {}
+    on_send_notification: (Notification) -> Unit = {},
+    show_qr_code: Boolean = false
 ) {
     Scaffold(
         topBar = { ownerTopBar("Campsite Details", on_back) },
@@ -164,6 +169,12 @@ fun campsiteDetailsContent(
                         }
                     }
                 }
+            }
+
+            // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show campsite QR code image with zxing for US 02.02.01", 2026-11-26
+            // Campsite QR code (US 02.02.01), drawn by CampsiteQrCode.kt.
+            if (show_qr_code) {
+                CampsiteQrCodeSection(campsite = campsite)
             }
 //            if (entrant != null) {
 //                WaitlistButton(

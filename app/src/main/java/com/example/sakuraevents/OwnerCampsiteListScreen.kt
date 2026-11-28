@@ -36,9 +36,31 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ButtonDefaults
 
-// TODO: Replace with the logged-in owner's UID once sign-in is implemented.
-/** The UID of the owner whose campsites these screens show, until there is a login. */
-const val TEST_OWNER_UID = "0"
+// Name: Arham Ahmed
+// Written with help from Anthropic, Claude (Claude Code), "Show Signing in until anonymous sign-in finishes on owner screens", 2026-11-26
+/**
+ * The page owner screens show until anonymous sign-in has set FirestoreDriver.current_user_uid,
+ * so nothing is loaded or saved under the wrong owner in the meantime.
+ *
+ * @param title the text shown in the middle of the top bar.
+ * @param on_back what to do when the back arrow is tapped.
+ */
+@Composable
+fun signingInContent(title: String, on_back: () -> Unit) {
+    Scaffold(
+        topBar = { ownerTopBar(title, on_back) },
+        containerColor = COLOURS.LIGHTYELLOW.colour
+    ) { inner_padding ->
+        Column(
+            modifier = Modifier
+                .padding(inner_padding)
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            Text("Signing in…", modifier = Modifier.testTag("signingInText"))
+        }
+    }
+}
 
 /**
  * The top bar used by the owner campsite screens: a title in the middle and a back arrow
@@ -76,7 +98,13 @@ fun ownerTopBar(title: String, on_back: () -> Unit) {
  */
 @Composable
 fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: FirestoreDriver) {
-    val owner_uid = firestore_driver.current_user_uid ?: TEST_OWNER_UID
+    // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show Signing in until anonymous sign-in finishes on owner screens", 2026-11-26
+    // Wait for sign-in instead of showing a placeholder owner's campsites.
+    val owner_uid = firestore_driver.current_user_uid
+    if (owner_uid == null) {
+        signingInContent("My Campsites") { nav_controller.popBackStack() }
+        return
+    }
     val owner = firestore_driver.owners[owner_uid]
     // True for builds run from Android Studio, false for release builds.
     val is_debug_build = (LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -103,7 +131,8 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
         on_campsite_click = { campsite -> nav_controller.navigate("CampsiteDetails/${campsite.UID}") },
         on_edit = { campsite -> nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") },
         on_delete = { campsite -> firestore_driver.deleteCampsite(campsite) },
-        show_delete = firestore_driver.current_user?.has_admin_access == true
+        show_delete = firestore_driver.current_user?.has_admin_access == true,
+        on_my_lotteries = { nav_controller.navigate("OwnerLotteries") }
 
     )
 }
@@ -119,6 +148,7 @@ fun ownerCampsiteListScreen(nav_controller: NavController, firestore_driver: Fir
  * @param on_create_test_owner what to do when "Create test owner" is tapped.
  * @param on_register what to do when "Register campsite" is tapped.
  * @param on_campsite_click what to do when a campsite in the list is tapped.
+ * @param on_my_lotteries what to do when "My Lotteries" is tapped (US 02.04.01, US 02.04.06).
  */
 @Composable
 fun ownerCampsiteListContent(
@@ -131,7 +161,8 @@ fun ownerCampsiteListContent(
     on_campsite_click: (Campsite) -> Unit,
     on_edit: (Campsite) -> Unit = {},
     on_delete: (Campsite) -> Unit = {},
-    show_delete: Boolean = false
+    show_delete: Boolean = false,
+    on_my_lotteries: () -> Unit = {}
 ) {
     Scaffold(
         topBar = { ownerTopBar("My Campsites", on_back) },
@@ -154,8 +185,16 @@ fun ownerCampsiteListContent(
 //                return@Column
 //            }
 
-            Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
-                Text("Register campsite")
+            // Name: Arham Ahmed
+            // Written with help from Anthropic, Claude (Claude Code), "Build owner lottery listing screen for US 02.04.01-02.04.03 and US 02.04.06", 2026-11-26
+            // "My Lotteries" sits next to "Register campsite" so owners can list their campsites in a lottery.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
+                    Text("Register campsite")
+                }
+                Button(onClick = on_my_lotteries, modifier = Modifier.testTag("myLotteriesButton")) {
+                    Text("My Lotteries")
+                }
             }
 
             if (campsites.isEmpty()) {
