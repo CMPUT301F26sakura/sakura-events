@@ -111,8 +111,6 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         "AdminImages",
         "OwnerCampsites",
         "OwnerLotteries",
-        "CampsiteDetails/{uid}",
-        "CampsiteForm?uid={uid}"
     )
 
     Scaffold(
