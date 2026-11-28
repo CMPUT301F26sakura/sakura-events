@@ -34,6 +34,8 @@ class Lottery(
     private var end_time: String = ""
 ) {
     private var winners_list: MutableList<Entrant> = mutableListOf()
+    // Keep track of whether the lottery has been drawn.
+    private var hasDrawn = false
     private var _campsites_list: MutableList<Campsite> = mutableListOf()
 
     /** Read-only list of campsites included in this lottery. */
@@ -102,7 +104,9 @@ class Lottery(
      */
     // The following function drawWinners() was generated / modified using Google Gemini 3.1 Pro
     // "Can you tell me the logic / boilerplate behind drawWinners() from List<Entrant> please?" 2026-Nov-05
-    fun drawWinners(): List<Entrant> {
+    fun drawWinners(): List<Entrant>{
+        // Do not draw winners again for the same lottery.
+        if (hasDrawn) return winners_list.toList()
         winners_list.clear()
         // 1. Create a master pool by combining the waiting_list from ALL member campsites.
         // .distinct() ensures an entrant isn't drawn twice if they joined multiple member campsites.
@@ -115,6 +119,8 @@ class Lottery(
         val shuffled = pooledWaitlist.shuffled()
         val selectedCount = minOf(capacity, shuffled.size)
         winners_list.addAll(shuffled.take(selectedCount))
+        // Mark the lottery as completed.
+        hasDrawn = true
         // 3. Send out notifications to everyone in the pool
 
         val campsiteNames = _campsites_list.joinToString(", ") { it.getName() }.ifBlank { "Campsite Lottery" }
@@ -155,8 +161,18 @@ class Lottery(
      * Populates the provided mutable list with the drawn lottery winners.
      * @param out_winners_list Mutable list to populate with winners.
      */
+
+    /**
+     * US 01.04.03: Allows a winning entrant to decline a lottery offer.
+     * Returns true if the entrant was removed from the winners list.
+     */
+    fun declineWinner(entrant: Entrant): Boolean {
+        return winners_list.removeAll { it.UID == entrant.UID }
+    }
+
     fun getWinnerList(out_winners_list: MutableList<Entrant>) {
-        if (winners_list.isEmpty()) {
+        // Draw winners only if the lottery has not been drawn
+        if (!hasDrawn) {
             drawWinners()
         }
         out_winners_list.clear()

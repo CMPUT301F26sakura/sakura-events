@@ -138,6 +138,8 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
                 val reservation = firestoreDriver.reservations[reservationUID]?.takeIf { it.getEntrant().UID == entrant?.UID && it.getState() == "COMPLETE" }
                 Box(modifier = Modifier.padding(innerPadding)) { RatingScreen(reservation = reservation, entrant = entrant, firestoreDriver = firestoreDriver)} }
             composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
+            // US 01.04.03: Open the Lotteries Won screen.
+            composable("LotteriesWon") {lotteriesWonScreen(firestoreDriver, innerPadding) }
             // Notifications page (US 01.03.01, 01.03.02, 01.10.01, 02.10.02). Written with help from Anthropic, Claude, "Notifications page route", 2026-11-25
             composable("AdminCampsites") {
                 Box(modifier = Modifier.padding(innerPadding)) {
@@ -326,6 +328,7 @@ fun topBar(nav_controller: NavController, current_location: String?) {
         "Home" to "Home",
         "Search" to "Search",
         "Profile" to "Profile",
+        "LotteriesWon" to "Lotteries Won", // Set the screen title
         "Notifications" to "Notifications",
         "OwnerCampsites" to "My Campsites",
         "AdminDashboard" to "Admin Dashboard",

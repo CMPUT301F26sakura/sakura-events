@@ -73,6 +73,11 @@ class FirestoreDriver {
     private val admins_ref = db.collection("admins")
     private val notifications_ref = db.collection("notifications")
     private val lotteries_ref = db.collection("lotteries")
+    // Store lottery offers and update the screen when they change.
+    private val _lotteryOffers = mutableStateMapOf<String, Map<String, Any>>()
+    val lotteryOffers: Map<String, Map<String, Any>> get() = _lotteryOffers
+    // Stores offers for entrants who win a lottery.
+    private val lottery_offers_ref = db.collection("lottery_offers")
 
     // Name: Devesh Darji
     // The following function / lines of code were generated / modified by Google Gemini Neon Model.
@@ -99,6 +104,18 @@ class FirestoreDriver {
      *
      */
     init {
+        // Load lottery offers from Firebase.
+        lottery_offers_ref.addSnapshotListener {snapshot, error ->
+            if (error != null){
+                return@addSnapshotListener
+            }
+            // Update the list with the latest offers.
+            _lotteryOffers.clear()
+            snapshot?.documents?.forEach{document ->
+                val data = document.data ?: return@forEach
+                _lotteryOffers[document.id] = data
+            }
+        }
         //Tasks.await(auth.signInAnonymously())
 
 
@@ -209,7 +226,6 @@ class FirestoreDriver {
                             reviews[uid] = review
                         }
                     }
-
                     _campsites[document.id] = Campsite(
                         UID = document.id,
                         name = campsite["name"] as String,
@@ -285,11 +301,14 @@ class FirestoreDriver {
                         campsite =       campsite,
                         entrant =        entrant,
                         guest_count =    (reservation["guest_count"] as Long).toInt(),
-                        beginning_date = reservation["beginning_date"] as String,
-                        end_date = reservation["end_date"] as String,
-                        reservation_state = ReservationState.entries.find {
-                            it.name == reservation["reservation_state"]
-                        } ?: ReservationState.NEW
+                        // Skip reservations with missing dates.
+                        beginning_date = reservation["beginning_date"] as? String ?: return@forEach,
+                        end_date = reservation["end_date"] as? String ?: return@forEach,
+                          reservation_state = ReservationState.entries.find {
+                              it.name == reservation["reservation_state"]
+                          } ?: ReservationState.NEW
+
+
                     )
                 }
             }
@@ -312,6 +331,131 @@ class FirestoreDriver {
             "reservation_state" to reservation.getState())
         return reservations_ref.document(UID).set(firestore_format)
     }
+
+    /**
+     * Save a lottery offer for a winning entrant.
+     * Prevents duplicate offers.
+     *
+     * @param lottery The lottery that was drawn.
+     * @param entrant The winning entrant.
+     * @return The firebase task for saving the offer
+     */
+    fun saveLotteryOffer(lottery: Lottery, entrant: Entrant): Task<Void> {
+        // Create a unique ID for each offer.
+        val offerUID = "${lottery.UID}_${entrant.UID}"
+        // Store the lottery offer information.
+        val offer = mapOf(
+            "lottery" to lottery.UID,
+            "entrant" to entrant.UID,
+            "campsites" to lottery.campsites_list.map { it.UID },
+            "status" to "PENDING"
+        )
+
+        // Save the offer without replacing an existing offer.
+        val ref = lottery_offers_ref.document(offerUID)
+
+        return db.runTransaction<Void> { transaction ->
+            if (!transaction.get(ref).exists()) {
+                transaction.set(ref, offer)
+            }
+            null
+        }
+    }
+
+    /**
+     * Draws lottery winners and saves their offers in Firebase
+     *
+     * @param lottery the lottery to draw winners from
+     * @return The combined Firebase task for saving the offers.
+     */
+    fun drawLotteryAndSaveOffers(lottery: Lottery): Task<Void> {
+
+        // Make sure the lottery has a saved ID.
+        require(lottery.UID.isNotBlank())
+
+        // Get the winning entrants.
+        val winners = lottery.drawWinners()
+
+        // Save an offer for each winner.
+        val tasks = winners.map { entrant ->
+            saveLotteryOffer(lottery, entrant)
+        }
+
+        return Tasks.whenAll(tasks)
+    }
+
+    /**
+     * Allows an entrant to decline their pending lottery offer.
+     *
+     * @param offerUID the unique ID of the lottery offer.
+     * @return The Firebase task for updating the offer status.
+     */
+    fun declineLotteryOffer(offerUID: String): Task<Void> {
+
+        // Get the current entrant's ID.
+        val uid = current_user_uid
+            ?: return Tasks.forException(
+                IllegalStateException("User is not signed in")
+            )
+
+        val ref = lottery_offers_ref.document(offerUID)
+
+        return db.runTransaction<Void> { transaction ->
+
+            val offer = transaction.get(ref)
+
+            // Check that the offer belongs to this entrant.
+            require(offer.exists())
+            require(offer.getString("entrant") == uid)
+
+            // Check that the offer is still pending.
+            require(offer.getString("status") == "PENDING")
+
+            // Mark the offer as declined.
+            transaction.update(ref, "status", "DECLINED")
+
+            null
+        }
+    }
+
+
+    /**
+     * US 01.04.03: Decline an unconfirmed reservation.
+     * Only the entrant who owns the reservation can decline it.
+     */
+    fun declineReservation(reservationUID: String): Task<Void> {
+        val entrantUID = current_user_uid
+            ?: return Tasks.forException(
+                IllegalStateException("User is not signed in")
+            )
+
+        val ref = reservations_ref.document(reservationUID)
+
+        return db.runTransaction<Void> { transaction ->
+            val document = transaction.get(ref)
+
+            require(document.exists()) {
+                "Reservation not found"
+            }
+
+            require(document.getString("entrant") == entrantUID) {
+                "This reservation does not belong to you"
+            }
+
+            require(document.getString("reservation_state") == "NEW") {
+                "This reservation cannot be declined"
+            }
+
+            transaction.update(
+                ref,
+                "reservation_state",
+                ReservationState.CANCELLED.name
+            )
+
+            null
+        }
+    }
+
     fun deleteReservation(reservation: Reservation): Task<Void> {
         // I think I need to add something here that also removes the object references.
         // This will likely involve invoking reservation.deleteReservation
