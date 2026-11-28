@@ -47,18 +47,12 @@ import androidx.compose.material3.ButtonDefaults
  */
 @Composable
 fun signingInContent(title: String, on_back: () -> Unit) {
-    Scaffold(
-        topBar = { ownerTopBar(title, on_back) },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { inner_padding ->
-        Column(
-            modifier = Modifier
-                .padding(inner_padding)
-                .padding(16.dp)
-                .fillMaxSize()
-        ) {
-            Text("Signing in…", modifier = Modifier.testTag("signingInText"))
-        }
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+    ) {
+        Text("Signing in…", modifier = Modifier.testTag("signingInText"))
     }
 }
 
@@ -164,17 +158,12 @@ fun ownerCampsiteListContent(
     show_delete: Boolean = false,
     on_my_lotteries: () -> Unit = {}
 ) {
-    Scaffold(
-        topBar = { ownerTopBar("My Campsites", on_back) },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { inner_padding ->
-        Column(
-            modifier = Modifier
-                .padding(inner_padding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
 //            if (!owner_found) {
 //                Text("Owner \"$TEST_OWNER_UID\" was not found.")
 //                if (show_debug_button) {
@@ -185,36 +174,35 @@ fun ownerCampsiteListContent(
 //                return@Column
 //            }
 
-            // Name: Arham Ahmed
-            // Written with help from Anthropic, Claude (Claude Code), "Build owner lottery listing screen for US 02.04.01-02.04.03 and US 02.04.06", 2026-11-26
-            // "My Lotteries" sits next to "Register campsite" so owners can list their campsites in a lottery.
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
-                    Text("Register campsite")
-                }
-                Button(onClick = on_my_lotteries, modifier = Modifier.testTag("myLotteriesButton")) {
-                    Text("My Lotteries")
-                }
+        // Name: Arham Ahmed
+        // Written with help from Anthropic, Claude (Claude Code), "Build owner lottery listing screen for US 02.04.01-02.04.03 and US 02.04.06", 2026-11-26
+        // "My Lotteries" sits next to "Register campsite" so owners can list their campsites in a lottery.
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = on_register, modifier = Modifier.testTag("registerCampsiteButton")) {
+                Text("Register campsite")
             }
+            Button(onClick = on_my_lotteries, modifier = Modifier.testTag("myLotteriesButton")) {
+                Text("My Lotteries")
+            }
+        }
 
-            if (campsites.isEmpty()) {
-                Text("You have no campsites yet.")
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(campsites, key = { it.UID }) { campsite ->
-                        val delete_action: (() -> Unit)? = if (show_delete) ({ on_delete(campsite) }) else null
-                        campsiteListItem(
-                            campsite = campsite,
-                            on_click = { on_campsite_click(campsite) },
-                            on_edit = { on_edit(campsite) },
-                            on_delete = delete_action
-                        )
-                    }
+        if (campsites.isEmpty()) {
+            Text("You have no campsites yet.")
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(campsites, key = { it.UID }) { campsite ->
+                    val delete_action: (() -> Unit)? = if (show_delete) ({ on_delete(campsite) }) else null
+                    campsiteListItem(
+                        campsite = campsite,
+                        on_click = { on_campsite_click(campsite) },
+                        on_edit = { on_edit(campsite) },
+                        on_delete = delete_action
+                    )
                 }
             }
         }

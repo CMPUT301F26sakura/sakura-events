@@ -104,19 +104,11 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         }
     }
 
-    val has_own_top_bar = current_location in listOf(
-        "AdminDashboard",
-        "AdminCampsites",
-        "AdminProfiles",
-        "AdminImages",
-        "OwnerCampsites",
-    )
+
 
     Scaffold(
         topBar = {
-            if (!has_own_top_bar) {
-                topBar(nav_controller, current_location)
-            }
+            topBar(nav_controller, current_location)
         },
         bottomBar = {
             bottomBar(nav_controller, current_location, current_user)
