@@ -81,6 +81,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         val blocked =
             (current_location == "Search" && !current_user.has_entrant_access) ||
                     (current_location == "OwnerCampsites" && !current_user.has_owner_access) ||
+                    (current_location == "OwnerLotteries" && !current_user.has_owner_access) ||
                     (current_location?.startsWith("CampsiteForm") == true && !current_user.has_owner_access && !current_user.has_admin_access) ||
                     (current_location in admin_routes && !current_user.has_admin_access)
         if (blocked) {
@@ -94,6 +95,7 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         "AdminProfiles",
         "AdminImages",
         "OwnerCampsites",
+        "OwnerLotteries",
         "CampsiteDetails/{uid}",
         "CampsiteDetailScreen/{UID}",
         "CampsiteForm?uid={uid}"
@@ -169,6 +171,14 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
             composable("OwnerCampsites") {
                 Box(modifier = Modifier.padding(innerPadding)) {
                     ownerCampsiteListScreen(nav_controller, firestoreDriver)
+                }
+            }
+            // Name: Arham Ahmed
+            // Written with help from Anthropic, Claude (Claude Code), "Build owner lottery listing screen for US 02.04.01-02.04.03 and US 02.04.06", 2026-11-26
+            // Owner lottery listings (US 02.04.01, US 02.04.02, US 02.04.03, US 02.04.06)
+            composable("OwnerLotteries") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    ownerLotteryScreen(nav_controller, firestoreDriver)
                 }
             }
             composable("CampsiteDetails/{uid}") { entry ->

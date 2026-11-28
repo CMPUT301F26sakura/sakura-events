@@ -131,6 +131,13 @@ fun applyFormToCampsite(campsite: Campsite, values: CampsiteFormValues) {
 fun campsiteFormScreen(nav_controller: NavController, firestore_driver: FirestoreDriver, campsite_uid: String?) {
     val campsite = campsite_uid?.let { firestore_driver.campsites[it] }
 
+    // Name: Arham Ahmed. Written with help from Anthropic, Claude (Claude Code), "Show Signing in until anonymous sign-in finishes on owner screens", 2026-11-26
+    // Registering needs the signed-in owner's UID, so wait for sign-in first. Editing does not.
+    if (campsite_uid == null && firestore_driver.current_user_uid == null) {
+        signingInContent("Register Campsite") { nav_controller.popBackStack() }
+        return
+    }
+
     campsiteFormContent(
         campsite = campsite,
         is_editing = campsite_uid != null,
@@ -143,7 +150,8 @@ fun campsiteFormScreen(nav_controller: NavController, firestore_driver: Firestor
                 firestore_driver.updateCampsite(campsite)
             } else {
                 // Registering: the campsite needs its UID before it is added to the owner.
-                val owner_uid = firestore_driver.current_user_uid ?: TEST_OWNER_UID
+                val owner_uid = firestore_driver.current_user_uid
+                    ?: return@save "Still signing in. Please try again."
                 val owner = firestore_driver.owners[owner_uid]
                     ?: return@save "Owner \"$owner_uid\" was not found."
                 val new_campsite = buildCampsiteFromForm(firestore_driver.generateNextUid(firestore_driver.campsites.keys), values)

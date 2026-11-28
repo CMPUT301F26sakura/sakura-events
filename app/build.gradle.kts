@@ -62,4 +62,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
+    // QR code images for campsites (US 02.02.01). Added by Arham Ahmed.
+    implementation(libs.zxing.core)
 }
