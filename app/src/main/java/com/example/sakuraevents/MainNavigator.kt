@@ -62,6 +62,21 @@ enum class COLOURS(val colour: Color) {
     DARKGREEN(Color(0xFF419874)),
 }
 
+enum class BUTTON_COLOURS(val buttonColour: ButtonColors) {
+    NORMAL(ButtonColors(
+        containerColor = COLOURS.DARKGREEN.colour,
+        contentColor = Color.White,
+        disabledContainerColor = Color.DarkGray,
+        disabledContentColor = Color.White
+    )),
+    RED(ButtonColors(
+        containerColor = Color.Red,
+        contentColor = Color.White,
+        disabledContainerColor = Color.DarkGray,
+        disabledContentColor = Color.White
+    ))
+}
+
 @Composable
 fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifier) {
     val nav_controller = rememberNavController()
@@ -355,16 +370,11 @@ fun topBar(nav_controller: NavController, current_location: String?) {
 }
 
 @Composable
-fun standardButton(clicked: () -> Unit, test_tag: String, button_text: String, icon: ImageVector? = null) {
+fun standardButton(clicked: () -> Unit, test_tag: String, button_text: String, icon: ImageVector? = null, button_colour: BUTTON_COLOURS = BUTTON_COLOURS.NORMAL) {
     Button(
         onClick = { clicked() },
         Modifier.testTag((test_tag)),
-        colors = ButtonColors(
-            containerColor = COLOURS.DARKGREEN.colour,
-            contentColor = Color.White,
-            disabledContainerColor = Color.DarkGray,
-            disabledContentColor = Color.White
-        ),
+        colors = button_colour.buttonColour,
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
     ) {
         if (icon != null) {
