@@ -308,41 +308,37 @@ fun ownerLotteryListContent(
 ) {
     var lottery_to_delete by remember { mutableStateOf<Lottery?>(null) }
 
-    Scaffold(
-        topBar = { ownerTopBar("My Lotteries", on_back) },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { inner_padding ->
-        Column(
-            modifier = Modifier
-                .padding(inner_padding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(onClick = on_create, modifier = Modifier.testTag("createLotteryButton")) {
-                Text("Create lottery")
-            }
 
-            if (lotteries.isEmpty()) {
-                Text("You have no lotteries yet.", modifier = Modifier.testTag("noLotteriesText"))
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(lotteries, key = { it.UID }) { lottery ->
-                        lotteryListItem(
-                            lottery = lottery,
-                            on_edit = { on_edit(lottery) },
-                            on_delete = { lottery_to_delete = lottery }
-                        )
-                    }
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Button(onClick = on_create, modifier = Modifier.testTag("createLotteryButton")) {
+            Text("Create lottery")
+        }
+
+        if (lotteries.isEmpty()) {
+            Text("You have no lotteries yet.", modifier = Modifier.testTag("noLotteriesText"))
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(lotteries, key = { it.UID }) { lottery ->
+                    lotteryListItem(
+                        lottery = lottery,
+                        on_edit = { on_edit(lottery) },
+                        on_delete = { lottery_to_delete = lottery }
+                    )
                 }
             }
         }
     }
+
 
     // Ask before deleting, since a deleted lottery cannot be brought back.
     lottery_to_delete?.let { lottery ->
@@ -450,129 +446,125 @@ fun lotteryFormContent(
     }
     val error_colour = MaterialTheme.colorScheme.error
 
-    Scaffold(
-        topBar = { ownerTopBar(if (lottery != null) "Edit Lottery" else "Create Lottery", on_back) },
-        containerColor = COLOURS.LIGHTYELLOW.colour
-    ) { inner_padding ->
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Campsites (US 02.04.01, US 02.04.02): a red border and message if none are ticked.
         Column(
             modifier = Modifier
-                .padding(inner_padding)
-                .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Campsites (US 02.04.01, US 02.04.02): a red border and message if none are ticked.
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (errors.campsites != null) {
-                            Modifier.border(2.dp, error_colour, RoundedCornerShape(4.dp))
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .padding(8.dp)
-                    .testTag("lotteryCampsitesSection")
-            ) {
-                Text("Campsites in this lottery", fontWeight = FontWeight.Bold)
-                if (owned_campsites.isEmpty()) {
-                    Text("You have no campsites to list. Register a campsite first.")
-                }
-                owned_campsites.forEach { campsite ->
-                    val checked = campsite.UID in selected_uids
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = checked,
-                                role = SemanticsRole.Checkbox,
-                                onValueChange = { now_checked ->
-                                    if (now_checked) selected_uids.add(campsite.UID) else selected_uids.remove(campsite.UID)
-                                }
-                            )
-                            .testTag("lotteryCampsiteCheckbox_${campsite.UID}")
-                    ) {
-                        Checkbox(checked = checked, onCheckedChange = null)
-                        Text(campsite.getName(), modifier = Modifier.padding(start = 8.dp))
+                .fillMaxWidth()
+                .then(
+                    if (errors.campsites != null) {
+                        Modifier.border(2.dp, error_colour, RoundedCornerShape(4.dp))
+                    } else {
+                        Modifier
                     }
-                }
-                errors.campsites?.let {
-                    Text(it, color = error_colour, modifier = Modifier.testTag("lotteryCampsitesError"))
-                }
-            }
-
-            // Registration period (US 02.04.03).
-            lotteryDateField(
-                label = "Registration start",
-                value = start_date,
-                error = errors.start_date,
-                tag_prefix = "lotteryStartDate",
-                on_pick = { show_start_picker = true }
-            )
-            lotteryDateField(
-                label = "Registration end",
-                value = end_date,
-                error = errors.end_date,
-                tag_prefix = "lotteryEndDate",
-                on_pick = { show_end_picker = true }
-            )
-
-            // Winner count, reusing the shared LotteryCapacityField. It has no error state of its own,
-            // so the whole field gets a red border when the count is not set.
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        if (errors.capacity != null) {
-                            Modifier.border(2.dp, error_colour, RoundedCornerShape(4.dp))
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .padding(8.dp)
-                    .testTag("lotteryCapacitySection")
-            ) {
-                LotteryCapacityField(
-                    lottery = capacity_holder,
-                    onLotteryChanged = { capacity = it.getCapacity() }
                 )
-                Text("Winners set: $capacity", modifier = Modifier.testTag("lotteryCapacityValue"))
-                errors.capacity?.let {
-                    Text(it, color = error_colour, modifier = Modifier.testTag("lotteryCapacityError"))
-                }
+                .padding(8.dp)
+                .testTag("lotteryCampsitesSection")
+        ) {
+            Text("Campsites in this lottery", fontWeight = FontWeight.Bold)
+            if (owned_campsites.isEmpty()) {
+                Text("You have no campsites to list. Register a campsite first.")
             }
-
-            if (errors.has_errors) {
-                Text(
-                    "Please fix the highlighted fields.",
-                    color = error_colour,
-                    modifier = Modifier.testTag("lotteryFormErrorText")
-                )
-            }
-
-            Button(
-                onClick = {
-                    save_attempted = true
-                    val check = validateLotteryForm(chosen_campsites.map { it.UID }, start_date, end_date, capacity)
-                    if (check.has_errors) return@Button
-                    on_save(
-                        LotteryFormValues(
-                            campsites = chosen_campsites,
-                            start_date = start_date.trim(),
-                            end_date = end_date.trim(),
-                            capacity = capacity
+            owned_campsites.forEach { campsite ->
+                val checked = campsite.UID in selected_uids
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(
+                            value = checked,
+                            role = SemanticsRole.Checkbox,
+                            onValueChange = { now_checked ->
+                                if (now_checked) selected_uids.add(campsite.UID) else selected_uids.remove(campsite.UID)
+                            }
                         )
-                    )
-                },
-                modifier = Modifier.testTag("saveLotteryButton")
-            ) {
-                Text(if (lottery != null) "Save changes" else "Create lottery")
+                        .testTag("lotteryCampsiteCheckbox_${campsite.UID}")
+                ) {
+                    Checkbox(checked = checked, onCheckedChange = null)
+                    Text(campsite.getName(), modifier = Modifier.padding(start = 8.dp))
+                }
+            }
+            errors.campsites?.let {
+                Text(it, color = error_colour, modifier = Modifier.testTag("lotteryCampsitesError"))
             }
         }
+
+        // Registration period (US 02.04.03).
+        lotteryDateField(
+            label = "Registration start",
+            value = start_date,
+            error = errors.start_date,
+            tag_prefix = "lotteryStartDate",
+            on_pick = { show_start_picker = true }
+        )
+        lotteryDateField(
+            label = "Registration end",
+            value = end_date,
+            error = errors.end_date,
+            tag_prefix = "lotteryEndDate",
+            on_pick = { show_end_picker = true }
+        )
+
+        // Winner count, reusing the shared LotteryCapacityField. It has no error state of its own,
+        // so the whole field gets a red border when the count is not set.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (errors.capacity != null) {
+                        Modifier.border(2.dp, error_colour, RoundedCornerShape(4.dp))
+                    } else {
+                        Modifier
+                    }
+                )
+                .padding(8.dp)
+                .testTag("lotteryCapacitySection")
+        ) {
+            LotteryCapacityField(
+                lottery = capacity_holder,
+                onLotteryChanged = { capacity = it.getCapacity() }
+            )
+            Text("Winners set: $capacity", modifier = Modifier.testTag("lotteryCapacityValue"))
+            errors.capacity?.let {
+                Text(it, color = error_colour, modifier = Modifier.testTag("lotteryCapacityError"))
+            }
+        }
+
+        if (errors.has_errors) {
+            Text(
+                "Please fix the highlighted fields.",
+                color = error_colour,
+                modifier = Modifier.testTag("lotteryFormErrorText")
+            )
+        }
+
+        Button(
+            onClick = {
+                save_attempted = true
+                val check = validateLotteryForm(chosen_campsites.map { it.UID }, start_date, end_date, capacity)
+                if (check.has_errors) return@Button
+                on_save(
+                    LotteryFormValues(
+                        campsites = chosen_campsites,
+                        start_date = start_date.trim(),
+                        end_date = end_date.trim(),
+                        capacity = capacity
+                    )
+                )
+            },
+            modifier = Modifier.testTag("saveLotteryButton")
+        ) {
+            Text(if (lottery != null) "Save changes" else "Create lottery")
+        }
     }
+
 
     if (show_start_picker) {
         lotteryDatePickerDialog(
