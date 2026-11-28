@@ -64,7 +64,6 @@ fun homeScreen(modifier: Modifier = Modifier, innerPadding: PaddingValues){
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Main Screen Content")
         PolicyScreen()
     }
 
