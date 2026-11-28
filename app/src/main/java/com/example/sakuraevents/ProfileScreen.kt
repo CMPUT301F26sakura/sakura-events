@@ -79,6 +79,18 @@ fun profileScreen(
         Text("Device UID: ${firestore_driver.current_user_uid ?: "Signing in..."}")
         Text("Roles: ${current_user?.getRole() ?: "Loading..."}")
         Spacer(modifier = Modifier.height(8.dp))
+        // Only entrants can access the Lotteries won screen.
+        if ( current_user?.has_entrant_access == true){
+
+            Button(
+                onClick = {
+                    // Open the Lotteries Won screen.
+                    nav_controller.navigate("LotteriesWon")
+                }
+            ) {
+                Text("Lotteries Won") // Display the button name
+            }
+        }
 
         if (current_user?.has_owner_access == true) {
             Button(onClick = { nav_controller.navigate("OwnerCampsites") }) {

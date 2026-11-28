@@ -35,7 +35,7 @@ import androidx.compose.runtime.setValue
  */
 class FirestoreDriver {
 
-    private val _reservations = mutableMapOf<String, Reservation>()
+    private val _reservations = mutableStateMapOf<String, Reservation>()
     // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
     private val _campsites = mutableStateMapOf<String, Campsite>()
@@ -178,13 +178,14 @@ class FirestoreDriver {
                         ratings = mutableListOf<Pair<Entrant, Float>>()
                     }
                     else {
-                        ratings = (campsite["ratings"] as List<*>).map { map ->
-                            val (entrantUID, double) = (map as Map<*, *>).entries.single()
-                            val entrant = _entrants[entrantUID as String] as Entrant
-                            val float = (double as Double).toFloat()
-                            entrant to float
-                        }.toMutableList()
-                    }
+                        ratings = (campsite["ratings"] as List<*>).flatMap { map ->
+                            // Read all ratings from the map.
+                            (map as Map<*, *>).entries.mapNotNull { entry ->
+                                // Find the entrant who submitted the rating.
+                                val entrant = _entrants[entry.key as? String]
+                                val rating = (entry.value as? Number)?.toFloat()
+                                // Only use valid ratings.
+                                if (entrant != null && rating != null) { entrant to rating } else { null } } }.toMutableList() }
                     _campsites[document.id] = Campsite(
                         UID = document.id,
                         name = campsite["name"] as String,
@@ -243,8 +244,12 @@ class FirestoreDriver {
                         campsite =       campsite,
                         entrant =        entrant,
                         guest_count =    (reservation["guest_count"] as Long).toInt(),
-                        beginning_date = reservation["beginning_date"] as String,
-                        end_date =       reservation["end_date"] as String
+                        // Skip reservations with missing dates.
+                        beginning_date = reservation["beginning_date"] as? String ?: return@forEach,
+                        end_date = reservation["end_date"] as? String ?: return@forEach,
+                          reservation_state = ReservationState.entries.find {
+                              it.name == reservation["reservation_state"]
+                          } ?: ReservationState.NEW
                     )
                 }
             }
@@ -267,6 +272,44 @@ class FirestoreDriver {
             "reservation_state" to reservation.getState())
         return reservations_ref.document(UID).set(firestore_format)
     }
+
+    /**
+     * US 01.04.03: Decline an unconfirmed reservation.
+     * Only the entrant who owns the reservation can decline it.
+     */
+    fun declineReservation(reservationUID: String): Task<Void> {
+        val entrantUID = current_user_uid
+            ?: return Tasks.forException(
+                IllegalStateException("User is not signed in")
+            )
+
+        val ref = reservations_ref.document(reservationUID)
+
+        return db.runTransaction<Void> { transaction ->
+            val document = transaction.get(ref)
+
+            require(document.exists()) {
+                "Reservation not found"
+            }
+
+            require(document.getString("entrant") == entrantUID) {
+                "This reservation does not belong to you"
+            }
+
+            require(document.getString("reservation_state") == "NEW") {
+                "This reservation cannot be declined"
+            }
+
+            transaction.update(
+                ref,
+                "reservation_state",
+                ReservationState.CANCELLED.name
+            )
+
+            null
+        }
+    }
+
     fun deleteReservation(reservation: Reservation): Task<Void> {
         // I think I need to add something here that also removes the object references.
         // This will likely involve invoking reservation.deleteReservation
