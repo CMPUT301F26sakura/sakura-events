@@ -54,13 +54,15 @@ class Campsite(
     private var _ratings: MutableList<Pair<Entrant, Float>> = mutableListOf(),
     private var average_rating: Float = 0.0f,
     private var _waiting_list: MutableList<Entrant> = mutableListOf(),
-    private var waitlist_capacity: Int = 0 // 0 here indicates there is no limit.
+    private var waitlist_capacity: Int = 0, // 0 here indicates there is no limit.
+    private var _reviews: MutableMap<String, String> = mutableMapOf()
 ) {
 
     val tags: List<String> get() = _tags
     val booking_period_dates: List<String> get() = _booking_period_dates
     val reservations: List<Reservation> get() = _reservations
     val ratings: List<Pair<Entrant, Float>> get() = _ratings
+    val reviews: Map<String, String> get() = _reviews
     val waiting_list: List<Entrant> get() = _waiting_list
 
     init {
@@ -280,6 +282,11 @@ class Campsite(
                 sum += ratingScore // Add the rating score to the sum
             }
             average_rating = sum / _ratings.size
+        }
+    }
+    fun addReview(entrant: Entrant, review: String) {
+        if (review.isNotBlank()) {
+            _reviews[entrant.UID] = review.trim()
         }
     }
 

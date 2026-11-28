@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cabin
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
@@ -73,13 +74,15 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
     // Prompt: "How do I redirect users off restricted screens if their role is turned off in Firebase, and fix duplicate top bars on owner/admin screens?" 2026-11-22
     // Added a real-time role-gating LaunchedEffect, hid MainNavigator's topBar on screens with their own top bar, and padded nested routes inside NavHost.
     // Immediately leave a role-restricted screen if the role flag is turned off in Firebase
+    val admin_routes = listOf("AdminDashboard", "AdminCampsites", "AdminProfiles", "AdminImages")
+
     LaunchedEffect(current_user?.role, current_location) {
         if (current_user == null) return@LaunchedEffect
         val blocked =
             (current_location == "Search" && !current_user.has_entrant_access) ||
                     (current_location == "OwnerCampsites" && !current_user.has_owner_access) ||
                     (current_location?.startsWith("CampsiteForm") == true && !current_user.has_owner_access && !current_user.has_admin_access) ||
-                    (current_location == "AdminDashboard" && !current_user.has_admin_access)
+                    (current_location in admin_routes && !current_user.has_admin_access)
         if (blocked) {
             nav_controller.navigate("Home") { popUpTo("Home") { inclusive = true } }
         }
@@ -87,6 +90,9 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
 
     val has_own_top_bar = current_location in listOf(
         "AdminDashboard",
+        "AdminCampsites",
+        "AdminProfiles",
+        "AdminImages",
         "OwnerCampsites",
         "CampsiteDetails/{uid}",
         "CampsiteDetailScreen/{UID}",
@@ -108,14 +114,51 @@ fun mainNavigator(firestoreDriver: FirestoreDriver, modifier: Modifier = Modifie
         NavHost(navController = nav_controller, startDestination = "Home") {
             composable("Home") { homeScreen(modifier, innerPadding) }
             composable("Search") { searchScreen(nav_controller, firestoreDriver.campsites.values.toList(), modifier, innerPadding) }
+            // Allows entrants to rate and review a campsite after completing their reservation.
+            composable("Rating/{reservationUID}") { backStackEntry ->
+                val reservationUID = backStackEntry.arguments ?.getString("reservationUID")
+                val entrant = firestoreDriver.current_user
+                val reservation = firestoreDriver.reservations[reservationUID]?.takeIf { it.getEntrant().UID == entrant?.UID && it.getState() == "COMPLETE" }
+                Box(modifier = Modifier.padding(innerPadding)) { RatingScreen(reservation = reservation, entrant = entrant, firestoreDriver = firestoreDriver)} }
             composable("Profile") { profileScreen(nav_controller, firestoreDriver, innerPadding) }
+            // Notifications page (US 01.03.01, 01.03.02, 01.10.01, 02.10.02). Written with help from Anthropic, Claude, "Notifications page route", 2026-11-25
+            composable("AdminCampsites") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    AdminCampsiteScreen(
+                        campsites = firestoreDriver.campsites.values.toList(),
+                        on_remove = { campsite -> firestoreDriver.deleteCampsite(campsite) },
+                        on_back = { nav_controller.popBackStack() },
+                        on_edit = { campsite -> nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") }
+                    )
+                }
+            }
+            composable("AdminProfiles") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    AdminProfileScreen(
+                        profiles = firestoreDriver.all_users.values.toList(),
+                        on_remove = { profile -> firestoreDriver.deleteEntrant(profile) },
+                        on_back = { nav_controller.popBackStack() },
+                        on_change_role = { profile, new_role ->
+                            firestoreDriver.updateUserRole(profile, new_role)
+                        }
+                    )
+                }
+            }
+            composable("AdminImages") {
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    AdminImageScreen(
+                        images = listOf("image1.png", "image2.png"),
+                        on_remove = { /* TODO */ },
+                        on_back = { nav_controller.popBackStack() }
+                    )
+                }
+            }
+            composable("Notifications") { notificationsScreen(firestoreDriver, innerPadding) }
             composable("AdminDashboard") {
                 Box(modifier = Modifier.padding(innerPadding)) {
                     AdminNavigation(
                         firestore_driver = firestoreDriver,
                         on_exit_admin = { nav_controller.navigate("Home") },
-                        on_open_entrant = { nav_controller.navigate("Search") },
-                        on_open_owner = { nav_controller.navigate("OwnerCampsites") },
                         on_edit_campsite = { campsite -> nav_controller.navigate("CampsiteForm?uid=${campsite.UID}") }
                     )
                 }
@@ -228,18 +271,6 @@ fun bottomBar(nav_controller: NavController, current_location: String?, current_
                     )
                 }
             }
-            if (current_user?.has_admin_access == true) {
-                IconButton(onClick = { nav_controller.navigate("AdminDashboard") { launchSingleTop = true } }) {
-                    Icon(
-                        imageVector = Icons.Default.Dashboard,
-                        contentDescription = "Admin Dashboard",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(if (current_location == "AdminDashboard") COLOURS.LIGHTYELLOW.colour else Color.Transparent),
-                        tint = Color.Black
-                    )
-                }
-            }
         }
     }
 }
@@ -270,6 +301,7 @@ fun topBar(nav_controller: NavController, current_location: String?) {
         "Home" to "Home",
         "Search" to "Search",
         "Profile" to "Profile",
+        "Notifications" to "Notifications",
         "OwnerCampsites" to "My Campsites",
         "AdminDashboard" to "Admin Dashboard",
         "CampsiteDetails/{uid}" to "Campsite Details",
@@ -290,6 +322,21 @@ fun topBar(nav_controller: NavController, current_location: String?) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
+                    )
+                }
+            }
+        },
+        // Bell icon that opens the Notifications page. Written with help from Anthropic, Claude, "Notifications bell in top bar", 2026-11-25
+        actions = {
+            if (current_location != "Notifications") {
+                IconButton(
+                    onClick = { nav_controller.navigate("Notifications") { launchSingleTop = true } },
+                    modifier = Modifier.testTag("notifications_bell")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        tint = Color.Black
                     )
                 }
             }

@@ -35,14 +35,18 @@ import androidx.compose.runtime.setValue
  */
 class FirestoreDriver {
 
-    private val _reservations = mutableMapOf<String, Reservation>()
+    // Automatically update the UI when reservations change.
+    private val _reservations = mutableStateMapOf<String, Reservation>()
     // The following _campsites and _owners lines were written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
     // mutableStateMapOf lets Compose screens redraw automatically when these maps change.
     private val _campsites = mutableStateMapOf<String, Campsite>()
     private val _entrants = mutableStateMapOf<String, Entrant>()
     private val _owners = mutableStateMapOf<String, CampsiteOwner>()
     private val _admins = mutableStateMapOf<String, Admin>()
-    //private val _notifications = mutableMapOf<String, Notification>()
+    // The notifications lines below were written with help from Anthropic, Claude, "Save and load notifications in Firestore", 2026-11-25
+    private val _notifications = mutableStateMapOf<String, Notification>()
+    // Raw notification documents, kept so notifications can be rebuilt once users and campsites have loaded.
+    private val _notification_docs = mutableMapOf<String, Map<String, Any>>()
     //private val _lotteries = mutableMapOf<String, Lottery>()
 
     val reservations: Map<String, Reservation> get() = _reservations
@@ -50,7 +54,7 @@ class FirestoreDriver {
     val entrants: Map<String, Entrant> get() = _entrants
     val owners: Map<String, CampsiteOwner> get() = _owners
     val admins: Map<String, Admin> get() = _admins
-    //val notifications: Map<String, Notification> get() = _notifications
+    val notifications: Map<String, Notification> get() = _notifications
     // val lotteries: Map<String, Lottery> get() = _lotteries
 
     val db = Firebase.firestore
@@ -62,23 +66,6 @@ class FirestoreDriver {
     private val admins_ref = db.collection("admins")
     private val notifications_ref = db.collection("notifications")
     private val lotteries_ref = db.collection("lotteries")
-
-    private val _owner_campsite_uids = mutableMapOf<String, List<String>>()
-
-    private fun relinkOwnerCampsites() {
-        _owner_campsite_uids.forEach { (ownerUid, campsiteUids) ->
-            val owner = _owners[ownerUid] ?: return@forEach
-            val linked = campsiteUids.mapNotNull { _campsites[it] }.toMutableList()
-            _owners[ownerUid] = CampsiteOwner(
-                UID = owner.UID,
-                role = Role.OWNER,
-                name = owner.getName(),
-                email = owner.getEmail(),
-                phone_number = owner.getPhoneNumber(),
-                _owned_campsites = linked
-            )
-        }
-    }
 
     // Name: Devesh Darji
     // The following function / lines of code were generated / modified by Google Gemini Neon Model.
@@ -112,54 +99,6 @@ class FirestoreDriver {
         // This code is adapted from the lab05 listyCity code. It is mostly modified in how it retrieves
         // the info from the document file because parts of our classes don't serialize cleanly.
         //assert(false)
-        entrants_ref.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-            _entrants.clear()
-            snapshot?.documents?.forEach { document ->
-                val entrant: Map<String, Any>? = document.data
-                if (entrant != null) {
-                    _entrants[document.id] = Entrant(
-                        UID = document.id,
-                        role = Role.ENTRANT,
-                        name = entrant["name"] as String,
-                        email = entrant["email"] as String,
-                        phone_number = entrant["phone_number"] as String,
-                        _notifications = mutableListOf<Notification>()
-                    )
-                }
-            }
-        }
-
-
-        owners_ref.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
-            _owners.clear()
-            snapshot?.documents?.forEach { document ->
-                val owner: Map<String, Any>? = document.data
-                if (owner != null) {
-                    val campsiteUids = (owner["owned_campsites"] as List<*>).mapNotNull { it as? String }
-                    _owner_campsite_uids[document.id] = campsiteUids
-                    _owners[document.id] = CampsiteOwner(
-                        UID = document.id,
-                        role = Role.OWNER,
-                        name = owner["name"] as String,
-                        email = owner["email"] as String,
-                        phone_number = owner["phone_number"] as String,
-                        _owned_campsites = campsiteUids.mapNotNull { uid -> _campsites[uid] }.toMutableList()
-                    )
-                }
-            }
-            relinkOwnerCampsites()
-        }
-
-        admins_ref.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                return@addSnapshotListener
-            }
 
         // Name: Devesh Darji
         // The following function / lines of code were generated / modified by Google Gemini Neon Model.
@@ -179,7 +118,8 @@ class FirestoreDriver {
                         "phone_number" to "",
                         "role" to Role.ENTRANT.name,
                         "owned_campsites" to emptyList<String>(),
-                        "notifications" to emptyList<String>()
+                        "notifications" to emptyList<String>(),
+                        "notifications_enabled" to true
                     ))
                 }
             }
@@ -213,6 +153,8 @@ class FirestoreDriver {
                     _owned_campsites = owned_uids.mapNotNull { _campsites[it] }.toMutableList()
                 )
 
+                user.setNotificationsEnabled(data["notifications_enabled"] as? Boolean ?: true)
+
                 _all_users[document.id] = user
                 if (user.has_entrant_access) _entrants[document.id] = user
                 if (user.has_owner_access) _owners[document.id] = user
@@ -220,6 +162,7 @@ class FirestoreDriver {
             }
 
             current_user = current_user_uid?.let { _all_users[it] }
+            rebuildNotifications()
         }
 
         campsites_ref.addSnapshotListener { snapshot, error ->
@@ -236,13 +179,30 @@ class FirestoreDriver {
                         ratings = mutableListOf<Pair<Entrant, Float>>()
                     }
                     else {
-                        ratings = (campsite["ratings"] as List<*>).map { map ->
-                            val (entrantUID, double) = (map as Map<*, *>).entries.single()
-                            val entrant = _entrants[entrantUID as String] as Entrant
-                            val float = (double as Double).toFloat()
-                            entrant to float
+                        ratings = (campsite["ratings"] as List<*>).mapNotNull { map ->
+                            val ratingMap = map as Map<*, *>
+                            val entrantUID = ratingMap["UID"] as? String
+                                ?: return@mapNotNull null
+                            val entrant = _entrants[entrantUID]
+                                ?: return@mapNotNull null
+                            val score = ratingMap["score"] as? Number
+                                ?: return@mapNotNull null
+
+                            entrant to score.toFloat()
                         }.toMutableList()
                     }
+                    val reviews = mutableMapOf<String, String>()
+
+                    (campsite["ratings"] as? List<*>)?.forEach { item ->
+                        val ratingMap = item as? Map<*, *>
+                        val uid = ratingMap?.get("UID") as? String
+                        val review = ratingMap?.get("review") as? String
+
+                        if (uid != null && !review.isNullOrBlank()) {
+                            reviews[uid] = review
+                        }
+                    }
+
                     _campsites[document.id] = Campsite(
                         UID = document.id,
                         name = campsite["name"] as String,
@@ -256,17 +216,30 @@ class FirestoreDriver {
                         _reservations = mutableListOf<Reservation>(),
                         // The above is created without values because the reservations themselves handle adding themselves to this list.
                         _ratings = ratings,
+                        _reviews = reviews,
                         average_rating = (campsite["average_rating"] as String).toFloat(),
-                        _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { _entrants[it as String] }.toMutableList(),
-                        _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { _all_users[it as? String] }.toMutableList(), // Changing to mapNotNull so it won't crash if a campsite loads before users
+                        _waiting_list = (campsite["waiting_list"] as List<*>).mapNotNull { (it as? String)?.let { uid -> _all_users[uid] } }.toMutableList(),
                         waitlist_capacity = (campsite["waitlist_capacity"] as Long).toInt()
                     )
-                    _all_users.forEach { (uid, user) -> // This loop takes care of crashed such that owned campsites still link up if users loaded before campsites
+                    _all_users.forEach { (uid, user) ->
                         _user_owned_campsite_uids[uid]?.mapNotNull { _campsites[it] }?.forEach { user.addCampsite(it) }
                     }
                 }
             }
-            relinkOwnerCampsites()
+            rebuildNotifications()
+        }
+
+        // Loads notifications (US 01.03.01, US 01.03.02, US 02.10.01, US 02.10.02).
+        notifications_ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+            _notification_docs.clear()
+            snapshot?.documents?.forEach { document ->
+                val data = document.data ?: return@forEach
+                _notification_docs[document.id] = data
+            }
+            rebuildNotifications()
         }
 
         reservations_ref.addSnapshotListener { snapshot, error ->
@@ -290,7 +263,10 @@ class FirestoreDriver {
                         entrant =        entrant,
                         guest_count =    (reservation["guest_count"] as Long).toInt(),
                         beginning_date = reservation["beginning_date"] as String,
-                        end_date =       reservation["end_date"] as String
+                        end_date = reservation["end_date"] as String,
+                        reservation_state = ReservationState.entries.find {
+                            it.name == reservation["reservation_state"]
+                        } ?: ReservationState.NEW
                     )
                 }
             }
@@ -346,11 +322,43 @@ class FirestoreDriver {
             "price" to campsite.getPrice(),
             "tags" to campsite.tags,
             "booking_period_dates" to campsite.booking_period_dates,
-            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
+            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating, "review" to (campsite.reviews[entrant.UID] ?: "")) },
             "average_rating" to campsite.getAvgRating(),
             "waiting_list" to campsite.waiting_list.map { it.UID },
             "waitlist_capacity" to campsite.getWaitlistCapacity())
         return campsites_ref.document(UID).set(firestore_format)
+    }
+
+    /**
+     * Reads the latest ratings directly from Firebase.
+     * Checks whether the entrant has already rated.
+     * Preserves other entrants' ratings and reviews.
+     * Recalculates the average rating.
+     * Updates only the rating related fields instead of the entire campsite.
+     */
+    fun submitRating(
+        campsiteUID: String, entrantUID: String, score: Float, review: String
+    ): Task<Void> {
+        val campsiteRef = campsites_ref.document(campsiteUID)
+        return db.runTransaction<Void> { transaction ->
+            val snapshot = transaction.get(campsiteRef)
+            val ratings = (snapshot.get("ratings") as? List<*>)
+                .orEmpty().map { it as Map<*, *> }.toMutableList()
+            if (ratings.any { it["UID"] == entrantUID }) {
+                throw IllegalStateException("You have already rated this campsite.")
+            }
+            require(score in 1.0f..5.0f)
+            ratings.add(
+                mapOf("UID" to entrantUID, "score" to score, "review" to review.trim()))
+            val average = ratings.map { (it["score"] as Number).toDouble() }.average()
+            transaction.update(
+                campsiteRef, mapOf("ratings" to ratings,
+                    "average_rating" to average.toString()
+                )
+            )
+
+            null
+        }
     }
 
     // The following was written with help from Anthropic, Claude (Claude Code), "Add owner campsite support", 2026-11-05
@@ -371,7 +379,7 @@ class FirestoreDriver {
             "price" to campsite.getPrice(),
             "tags" to campsite.tags,
             "booking_period_dates" to campsite.booking_period_dates,
-            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating) },
+            "ratings" to campsite.ratings.map { (entrant, rating) -> mapOf("UID" to entrant.UID, "score" to rating,"review" to(campsite.reviews[entrant.UID] ?: "")) },
             "average_rating" to campsite.getAvgRating(),
             "waiting_list" to campsite.waiting_list.map { it.UID },
             "waitlist_capacity" to campsite.getWaitlistCapacity())
@@ -402,9 +410,84 @@ class FirestoreDriver {
             "phone_number" to user.getPhoneNumber(),
             "role" to user.getRole(),
             "notifications" to user.notifications.map { it.UID },
-            "owned_campsites" to owned_uids
+            "owned_campsites" to owned_uids,
+            "notifications_enabled" to user.getNotificationsEnabled()
         )
         return users_ref.document(uid).set(firestore_format)
+    }
+
+    // The functions below were written with help from Anthropic, Claude, "Save and load notifications in Firestore", 2026-11-25
+    /**
+     * Turns the stored notification documents into Notification objects. Called whenever users,
+     * campsites or notifications change, because a notification needs its sender, campsite and
+     * recipients to be loaded first. Notifications whose sender or campsite no longer exists are skipped.
+     */
+    private fun rebuildNotifications() {
+        _notifications.clear()
+        _notification_docs.forEach { (uid, data) ->
+            val sender = _all_users[data["sender"] as? String ?: ""] ?: return@forEach
+            val campsite = _campsites[data["campsite"] as? String ?: ""] ?: return@forEach
+            val recipients = (data["recipients"] as? List<*>)
+                ?.mapNotNull { (it as? String)?.let { recipient_uid -> _all_users[recipient_uid] } } ?: emptyList()
+            val type = try {
+                NotificationType.valueOf(data["type"] as? String ?: "")
+            } catch (e: IllegalArgumentException) {
+                NotificationType.OWNER_MESSAGE
+            }
+            _notifications[uid] = Notification(
+                UID = uid,
+                notification_type = type,
+                sender = sender,
+                campsite = campsite,
+                title = data["title"] as? String ?: "",
+                message = data["message"] as? String ?: "",
+                _recipients = recipients,
+                date_sent = data["date_sent"] as? String ?: ""
+            )
+        }
+    }
+
+    /**
+     * Saves a notification to Firestore (US 02.10.01). Recipients, sender and campsite are stored by UID.
+     *
+     * @param notification the Notification to save.
+     * @return the Firestore Task for the save.
+     */
+    fun addNotification(notification: Notification): Task<Void> {
+        val UID: String = if (notification.UID.isNotBlank()) notification.UID else generateNextUid(_notification_docs.keys)
+        val firestore_format = mapOf<String, Any>(
+            "type" to notification.getNotificationType().name,
+            "sender" to notification.getSender().UID,
+            "campsite" to notification.getCampsite().UID,
+            "title" to notification.getTitle(),
+            "message" to notification.getMessage(),
+            "recipients" to notification.recipients.map { it.UID },
+            "date_sent" to notification.getDateSent())
+        return notifications_ref.document(UID).set(firestore_format)
+    }
+
+    /**
+     * Returns the notifications a user received, newest first (US 01.03.01, US 01.03.02).
+     *
+     * @param uid the user's UID.
+     * @return the notifications that list this user as a recipient.
+     */
+    fun getNotificationsFor(uid: String): List<Notification> {
+        return _notifications.values
+            .filter { notification -> notification.recipients.any { it.UID == uid } }
+            .sortedByDescending { it.UID.toIntOrNull() ?: 0 }
+    }
+
+    /**
+     * Returns the notifications a campsite owner sent, newest first (US 02.10.02).
+     *
+     * @param uid the owner's UID.
+     * @return the notifications this user sent.
+     */
+    fun getNotificationsSentBy(uid: String): List<Notification> {
+        return _notifications.values
+            .filter { it.getSender().UID == uid }
+            .sortedByDescending { it.UID.toIntOrNull() ?: 0 }
     }
 
     fun updateUserRole(user: Entrant, new_role: Role): Task<Void> {

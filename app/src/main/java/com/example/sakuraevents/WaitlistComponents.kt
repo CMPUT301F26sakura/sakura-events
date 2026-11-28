@@ -98,14 +98,17 @@ fun WaitlistCapacityField(
 ) {
     var capacity_text by remember { mutableStateOf(campsite.getWaitlistCapacity().toString()) }
     var error_message by remember { mutableStateOf("") }
+    var saved_message by remember { mutableStateOf("") }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = capacity_text,
-                onValueChange = { capacity_text = it },
+                // Highlighting the invalid field (TA feedback) was written with help from Anthropic, Claude, "Highlight invalid capacity input", 2026-11-25
+                onValueChange = { capacity_text = it; error_message = "" },
                 label = { Text("Waitlist capacity (0 = no limit)") },
                 singleLine = true,
+                isError = error_message.isNotEmpty(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f).testTag("capacity_input")
             )
@@ -113,9 +116,11 @@ fun WaitlistCapacityField(
                 onClick = {
                     val new_capacity = capacity_text.trim().toIntOrNull()
                     if (new_capacity != null && campsite.setWaitlistCapacity(new_capacity)) {
+                        saved_message = "Waitlist capacity is updated."
                         error_message = ""
                         onCapacityChanged(campsite)
                     } else {
+                        saved_message = ""
                         error_message = "Enter a whole number, 0 or higher."
                     }
                 },
@@ -130,6 +135,8 @@ fun WaitlistCapacityField(
         }
         if (error_message.isNotEmpty()) {
             Text(text = error_message, color = Color.Red, modifier = Modifier.testTag("capacity_error"))
+        } else if (saved_message.isNotEmpty()) {
+            Text(text = saved_message, color = COLOURS.DARKGREEN.colour, modifier = Modifier.testTag("capacity_updated"))
         }
     }
 }
