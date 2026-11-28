@@ -14,8 +14,14 @@ import androidx.compose.ui.unit.dp
 
 /**
  * US 01.04.03
- * Displays pending reservations and allows
- * entrants to decline them.
+ * Displays pending lottery offers for the current entrant
+ *
+ * Responsibility: Shows winning offers and allows the
+ * entrant to decline an offer before confirming a reservation.
+ *
+ * @param firestoreDriver Loads and updates lottery offer: in Firebase.
+ * @param innerPadding  provides spacing for the navigation bars.
+ *
  *
  */
 @Composable

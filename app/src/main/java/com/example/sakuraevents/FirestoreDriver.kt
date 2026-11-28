@@ -289,7 +289,15 @@ class FirestoreDriver {
             "reservation_state" to reservation.getState())
         return reservations_ref.document(UID).set(firestore_format)
     }
-    // Save a winning entrant's lottery offer.
+
+    /**
+     * Save a lottery offer for a winning entrant.
+     * Prevents duplicate offers.
+     *
+     * @param lottery The lottery that was drawn.
+     * @param entrant The winning entrant.
+     * @return The firebase task for saving the offer
+     */
     fun saveLotteryOffer(lottery: Lottery, entrant: Entrant): Task<Void> {
         // Create a unique ID for each offer.
         val offerUID = "${lottery.UID}_${entrant.UID}"
@@ -311,7 +319,13 @@ class FirestoreDriver {
             null
         }
     }
-    // Draw lottery winners and save their offers.
+
+    /**
+     * Draws lottery winners and saves their offers in Firebase
+     *
+     * @param lottery the lottery to draw winners from
+     * @return The combined Firebase task for saving the offers.
+     */
     fun drawLotteryAndSaveOffers(lottery: Lottery): Task<Void> {
 
         // Make sure the lottery has a saved ID.
@@ -327,7 +341,13 @@ class FirestoreDriver {
 
         return Tasks.whenAll(tasks)
     }
-    // Allow an entrant to decline their lottery offer.
+
+    /**
+     * Allows an entrant to decline their pending lottery offer.
+     *
+     * @param offerUID the unique ID of the lottery offer.
+     * @return The Firebase task for updating the offer status.
+     */
     fun declineLotteryOffer(offerUID: String): Task<Void> {
 
         // Get the current entrant's ID.
